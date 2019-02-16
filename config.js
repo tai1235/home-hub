@@ -14,7 +14,7 @@ environments.staging = {
     httpsPort: 3001,
     envName: 'staging',
     hashingSecret: 'alpaca',
-    logPath: '/home/tai1235/home-hub/log.txt'
+    logPath: '/home/tainv/home-hub/log.txt'
 };
 
 // Production environment
@@ -23,7 +23,7 @@ environments.production = {
     httpsPort: 5001,
     envName: 'production',
     hashingSecret: 'wolverine',
-    logPath: '/home/tai1235/home-hub/log.txt'
+    logPath: '/home/tainv/home-hub/log.txt'
 };
 
 // Determine which environment was passed as a command-line argument

@@ -1,15 +1,15 @@
 /**
  * Author: TaiNV
- * Date Modified: 2019/01/19
+ * Date Created: 2019/01/19
  * Module: system-log
  * Description: provie logging interface for the project
  */
 
 // Dependencies
-const {createLogger, format, transports} = require('winston');
+const { createLogger, format, transports } = require('winston');
 const moment = require('moment');
 const path = require('path');
-const config = require('../../config');
+const config = require('../config');
 
 // Container for this module
 const Log = {};
@@ -24,27 +24,27 @@ const logger = createLogger({
     level: 'debug',
     transports: [
         new transports.Console({
-            format: format.printf(msg => format.colorize().colorize(msg.level, 
-                    '[' + moment().format("YYYY-MM-DD HH:mm:ss.SSS") + ']' +
-                    '[' + msg.level.toUpperCase() + ']' +
-                    '[' + Log.config.filename + '] ' +
-                    msg.message))
+            format: format.printf(msg => format.colorize().colorize(msg.level,
+                '[' + msg.level.substring(0, 4).toUpperCase() + ']' +
+                '[' + moment().format("YYYY-MM-DD HH:mm:ss.SSS") + ']' +
+                '[' + Log.config.filename + '] ' +
+                msg.message))
         }),
         new transports.File({
             filename: Log.config.logfile,
             level: 'info',
             format: format.printf(msg => (
-                    '[' + moment().format("YYYY-MM-DD HH:mm:ss.SSS") + ']' +
-                    '[' + msg.level.toUpperCase() + ']' +
-                    '[' + Log.config.filename + '] ' +
-                    msg.message))
+                '[' + moment().format("YYYY-MM-DD HH:mm:ss.SSS") + ']' +
+                '[' + msg.level.substring(0, 4).toUpperCase() + ']' +
+                '[' + Log.config.filename + '] ' +
+                msg.message))
         })
     ]
 });
 
 // Create log with filename for debug purposes
 Log.create = filename => {
-    filename = typeof(filename) == 'string' ? filename : false;
+    filename = typeof (filename) == 'string' ? filename : false;
     Log.config.filename = path.parse(filename).base;
     return Log;
 }
