@@ -2,7 +2,7 @@
  * Author: TaiNV
  * Date Modified: 2019/01/19
  * Module: system-log
- * Description: provie logging interface for the project
+ * Description: configuration for the project
  */
 
 // Container for all environments
