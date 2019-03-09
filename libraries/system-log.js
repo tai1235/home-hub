@@ -19,7 +19,6 @@ class Logger {
             transports: [
                 new transports.Console({
                     format: format.printf(msg => format.colorize().colorize(msg.level,
-                        '[' + msg.level.substring(0, 4).toUpperCase() + ']' +
                         '[' + moment().format("YYYY-MM-DD HH:mm:ss.SSS") + ']' +
                         '[' + this.filename + '] ' +
                         msg.message))

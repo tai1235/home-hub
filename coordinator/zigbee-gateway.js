@@ -17,25 +17,52 @@ const SubscribeTopics = {
     DeviceJoined: 'devicejoined',
     DeviceLeft: 'deviceleft',
     ZclResponse: 'zclresponse',
-}
+};
 
 const ZigbeeCommand = {
     CreateNetwork: 'pluin network-creator start',
     PermitJoin: '',
     PluginDeviceTable: 'plugin device-table',
     OnOff: 'zcl on-off',
-}
+};
 
-const PublishTopic = 'command'
+const PublishTopic = 'command';
+
+const ClusterID = {
+    BASIC: '0x0000',
+    ONOFF: '0x0006'
+};
+
+const Attribute = {
+
+};
+
+//TODO Get command value from cluster ID and command data
+_getClusterValue = (clusterId, commandData) => {
+    let attirbute = {};
+    switch (clusterId) {
+        case '0x0000': {
+
+        } break;
+        case '0x0006': {
+
+            attirbute.id = messageData.commandData.substring(2, 5);
+            attirbute.dataType = messageData.commandData.substring(6, 7);
+            attirbute.dataValue = messageData.commandData.substring(7, 8)
+        } break;
+    }
+    return value;
+};
+
 
 // Container for all methods
 class ZigbeeGateway extends EventEmitter {
     constructor(eui64) {
         super();
-        this.eui64 = eui64
-        this.clientId = helpers.createRandomString(32)
+        this.eui64 = eui64;
+        this.clientId = helpers.createRandomString(32);
         this.client = mqtt.connect({
-            host: '192.168.11.77',
+            host: '192.168.11.79',
             port: 1883,
             clientId: this.clientId,
             protocol: 'mqtt'
@@ -44,15 +71,17 @@ class ZigbeeGateway extends EventEmitter {
 
     getConnectStatus(callback) {
         this.client.on('connect', () => {
+            logger.debug("Connected to broker");
             this.client.subscribe([
                 'gw/' + this.eui64 + '/' + SubscribeTopics.DeviceJoined,
                 'gw/' + this.eui64 + '/' + SubscribeTopics.DeviceLeft,
                 'gw/' + this.eui64 + '/' + SubscribeTopics.ZclResponse
             ], (err, granted) => {
                 if (err)
-                    logger.error("Lost connection to Zigbee Gateway")
-                else
-                    logger.debug("Subscribe to: " + granted);
+                    logger.error("Lost connection to Zigbee Gateway");
+                else {
+                    logger.debug("Subscribe successfully");
+                }
             });
             callback()
         })
@@ -60,27 +89,29 @@ class ZigbeeGateway extends EventEmitter {
 
     process() {
         this.client.on('message', (topic, message) => {
-            let topicLevel = topic.split('/')
-            logger.info('<-- Gateway: ' + topicLevel[2] + ':\n' + message)
-            if (topicLevel[2] == SubscribeTopics.DeviceJoined) {
-                if (this.listener('device-joined').length > 0) {
-                    this.emit('device-joined', message)
+            let topicLevel = topic.split('/');
+            logger.info('Gateway[' + topicLevel[2] + ']' + ': ' + message);
+            let messageData = JSON.parse(message.toString());
+            if (topicLevel[2] === SubscribeTopics.DeviceJoined) {
+                // TODO Parse eui64 from message
+                // TODO Parse number of endpoint (fixed / from message)
+                // TODO Parse device information ()
+                // TODO Pass device's data to the event emitter
+                this.emit('device-joined', message)
+            } else if (topicLevel[2] === SubscribeTopics.DeviceLeft) {
+                this.emit('device-left', message)
+            } else if (topicLevel[2] === SubscribeTopics.ZclResponse) {
+                if (messageData.clusterId === '0x0006') {
+
                 }
-            } else if (topicLevel[2] == SubscribeTopics.DeviceLeft) {
-                if (this.listener('device-left').length > 0) {
-                    this.emit('device-left', message)
-                }
-            } else if (topicLevel[2] == SubscribeTopics.ZclResponse) {
-                if (this.listener('device-status').length > 0) {
-                    this.emit('device-status', message)
-                }
+                this.emit('device-status', message)
             }
         })
     }
 
     publish(message) {
-        logger.info('--> Gateway: ' + PublishTopic + ':\n' + message)
-        let topic = 'gw/' + this.eui64 + '/' + PublishTopic
+        logger.info('Gateway[' + PublishTopic + ']' + ': ' + message);
+        let topic = 'gw/' + this.eui64 + '/' + PublishTopic;
         this.client.publish(topic, message)
     }
 
@@ -101,7 +132,6 @@ class ZigbeeGateway extends EventEmitter {
                     command: ZigbeeCommand.PluginDeviceTable + ' send ' + eui64 + ' ' + deviceEndpoint,
                     postDelayMs: postTimeDelay
                 };
-
                 payload.commands.push(commandItem2);
             } break;
             case ZigbeeCommand.CreateNetwork: {
