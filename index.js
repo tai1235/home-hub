@@ -1,6 +1,9 @@
-const logging = require('./libraries/system-log').create(__filename);
+const Logger = require('./libraries/system-log')
+const logger = new Logger(__filename)
 
-logging.debug('fatal condition');
-logging.info('critical condition');
-logging.error('error condition');
-logging.warn('warning condition');
+console.log(__filename)
+
+logger.debug('fatal condition');
+logger.info('critical condition');
+logger.error('error condition');
+logger.warn('warning condition');
