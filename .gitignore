@@ -10,3 +10,4 @@ persist
 .idea/modules.xml
 .idea/workspace.xml
 .idea/jsLibraryMappings.xml
+package-lock.json

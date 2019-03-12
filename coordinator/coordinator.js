@@ -6,44 +6,49 @@
  */
 
 // Dependencies
-const ZigbeeGateway = require('./zigbee-gateway')
-const EventEmitter = require('events')
-const Logger = require('../libraries/system-log')
-const DeviceManager = require('../controller/device-manager/device-manager')
-const Device = require('../controller/device-manager/device')
+const ZigbeeGateway = require('./zigbee-gateway');
+const EventEmitter = require('events');
+const Logger = require('../libraries/system-log');
+const DeviceManager = require('../controller/device-manager/device-manager');
+const Device = require('../controller/device-manager/device');
+const config = require('../config');
 
-const logger = new Logger(__filename)
+const logger = new Logger(__filename);
 
-class Coordinator extends EventEmitter {
+class Coordinator {
     constructor() {
-        this.zigbeeGateway = new ZigbeeGateway()
-        this.mqttClient.getConnectStatus(() => {
-            this.mqttClient.getMessage()
-        })
+        this.zigbeeGateway = new ZigbeeGateway(config.gatewayId);
+        this.zigbeeGateway.getConnectStatus(() => {
+            this.zigbeeGateway.process()
+        });
         this.deviceManager = new DeviceManager()
     }
 
-    handleDeviceJoin(callback) {
-        this.zigbeeGateway.on('device-join', message => {
-            // Handle device join
-            // Get device's information from message
-            let strMessage = JSON.parse(message);
-            let eui64 = strMessage.endpoint.eiu64 // TODO
-            let device = new Device(eui64, name, type, endpoint, serialNumber, manufacturer, model)
-            this.deviceManager.addDevice(device)
-            // Update database
+    handleDeviceJoined(callback) {
+        this.zigbeeGateway.on('device-joined', message => {
+            // Parse parameter from message
+
+            // Create and store new device to cache
+            this.deviceManager.handleDeviceJoined(eui64, endpoint, type);
+
+            // Store device's data to DB
 
             // Invoke the callback
-            callback(device)
+            callback();
         })
     }
 
     handleDeviceLeft(callback) {
         this.zigbeeGateway.on('device-left', message => {
-            // Handle device left
+            // Parse parameter from message
+
+            // Create and store new device to cache
+            this.deviceManager.handleDeviceLeft(eui64);
+
+            // Store device's data to DB
 
             // Invoke the callback
-            callback()
+            callback();
         })
     }
 
@@ -76,10 +81,32 @@ class Coordinator extends EventEmitter {
 
     }
 
+    handleGroupAdd(callback) {
+
+    }
+
+    handleGroupRemove(callback) {
+
+    }
+
+    handleGroupEnable(callback) {
+
+    }
+
     process() {
-        this.handleDeviceJoinMessage()
-        this.handleDeviceLeftMessage()
-        this.handleDeviceStatusMessage()
+        // Handle device's event
+        this.handleDeviceJoined();
+        this.handleDeviceLeft();
+        this.handleDeviceStatus();
+        // Handle rule's event
+        this.handleRuleAdd();
+        this.handleRuleRemove();
+        this.handleRuleEnable();
+        this.handleRuleActive();
+        // Handle group's event
+        this.handleGroupAdd();
+        this.handleGroupRemove();
+        this.handleGroupEnable();
     }
 }
 

@@ -6,8 +6,11 @@
  */
 
 // Dependencies
-const mongo = require('mongodb').MongoClient;
-const ObjectId = require('mongodb').ObjectID;
+const mongoose = require('mongoose');
+
+let Schema = mongoose.Schema;
+
+
 
 const _url = "mongodb://localhost:27017";
 const _dbName = "home-hub";

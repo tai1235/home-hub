@@ -39,19 +39,18 @@ const Attribute = {
 
 //TODO Get command value from cluster ID and command data
 _getClusterValue = (clusterId, commandData) => {
-    let attirbute = {};
+    let attribute = {};
     switch (clusterId) {
         case '0x0000': {
 
         } break;
         case '0x0006': {
-
-            attirbute.id = messageData.commandData.substring(2, 5);
-            attirbute.dataType = messageData.commandData.substring(6, 7);
-            attirbute.dataValue = messageData.commandData.substring(7, 8)
+            attribute.id = commandData.substring(2, 5);
+            attribute.dataType = commandData.substring(6, 7);
+            attribute.dataValue = commandData.substring(7, 8)
         } break;
     }
-    return value;
+    return attribute;
 };
 
 
@@ -62,7 +61,7 @@ class ZigbeeGateway extends EventEmitter {
         this.eui64 = eui64;
         this.clientId = helpers.createRandomString(32);
         this.client = mqtt.connect({
-            host: '192.168.11.79',
+            host: 'localhost',
             port: 1883,
             clientId: this.clientId,
             protocol: 'mqtt'
@@ -76,7 +75,7 @@ class ZigbeeGateway extends EventEmitter {
                 'gw/' + this.eui64 + '/' + SubscribeTopics.DeviceJoined,
                 'gw/' + this.eui64 + '/' + SubscribeTopics.DeviceLeft,
                 'gw/' + this.eui64 + '/' + SubscribeTopics.ZclResponse
-            ], (err, granted) => {
+            ], (err) => {
                 if (err)
                     logger.error("Lost connection to Zigbee Gateway");
                 else {
@@ -92,19 +91,26 @@ class ZigbeeGateway extends EventEmitter {
             let topicLevel = topic.split('/');
             logger.info('Gateway[' + topicLevel[2] + ']' + ': ' + message);
             let messageData = JSON.parse(message.toString());
-            if (topicLevel[2] === SubscribeTopics.DeviceJoined) {
-                // TODO Parse eui64 from message
-                // TODO Parse number of endpoint (fixed / from message)
-                // TODO Parse device information ()
-                // TODO Pass device's data to the event emitter
-                this.emit('device-joined', message)
-            } else if (topicLevel[2] === SubscribeTopics.DeviceLeft) {
-                this.emit('device-left', message)
-            } else if (topicLevel[2] === SubscribeTopics.ZclResponse) {
-                if (messageData.clusterId === '0x0006') {
-
-                }
-                this.emit('device-status', message)
+            switch (topicLevel[2]) {
+                case SubscribeTopics.DeviceJoined: {
+                    if (this.listener('device-joined').length > 0) {
+                        // TODO Parse eui64 from message
+                        // TODO Parse number of endpoint (fixed / from message)
+                        // TODO Parse device information ()
+                        // TODO Pass device's data to the event emitter
+                        this.emit('device-joined', message);
+                    }
+                } break;
+                case SubscribeTopics.DeviceLeft: {
+                    if (this.listener('device-left').length > 0) {
+                        this.emit('device-left', message);
+                    }
+                } break;
+                case SubscribeTopics.ZclResponse: {
+                    if (this.listener('device-response').length > 0) {
+                        this.emit('device-response', message);
+                    }
+                } break;
             }
         })
     }
@@ -112,7 +118,7 @@ class ZigbeeGateway extends EventEmitter {
     publish(message) {
         logger.info('Gateway[' + PublishTopic + ']' + ': ' + message);
         let topic = 'gw/' + this.eui64 + '/' + PublishTopic;
-        this.client.publish(topic, message)
+        this.client.publish(topic, message);
     }
 
     static createZigbeeCommand(cmd, params, postTimeDelay = 0) {
@@ -120,25 +126,31 @@ class ZigbeeGateway extends EventEmitter {
         payload.commands = [];
         switch (cmd) {
             case ZigbeeCommand.OnOff: {
-                let eui64 = params.eui64;
-                let onOff = params.on === 1 ? 'on' : 'off';
-                let deviceEndpoint = params.deviceEndpoint;
-                let commandItem1 = {
-                    command: ZigbeeCommand.OnOff + ' ' + onOff,
+                /**
+                 * {Object} params - Required params for this command
+                 * {String} params.eui64 - Device used for this command
+                 * {Number} params.endpoint - Endpoint to execute this command
+                 * {Number} params.on - Value to assign to the endpoint
+                 */
+                payload.commands.push({
+                    command: params.on === 1 ? ZigbeeCommand.OnOff + ' on' : ZigbeeCommand.OnOff + ' off',
                     postDelayMs: postTimeDelay
-                };
-                payload.commands.push(commandItem1);
-                let commandItem2 = {
-                    command: ZigbeeCommand.PluginDeviceTable + ' send ' + eui64 + ' ' + deviceEndpoint,
+                });
+                payload.commands.push({
+                    command: ZigbeeCommand.PluginDeviceTable + ' send ' + params.eui64 + ' ' + params.endpoint,
                     postDelayMs: postTimeDelay
-                };
-                payload.commands.push(commandItem2);
+                });
             } break;
             case ZigbeeCommand.CreateNetwork: {
-
+                /**
+                 * {Object} params - Required params for this command
+                 * {String} params.eui64 - Device used for this command
+                 * {Number} params.endpoint - Endpoint to execute this command
+                 * {Bool} params.on - Value to assign to the endpoint
+                 */
             } break;
         }
-        return payload
+        return JSON.stringify(payload);
     }
 }
 
