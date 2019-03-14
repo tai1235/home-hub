@@ -12,6 +12,7 @@ let Characteristic = require('../../hap').Characteristic;
 let uuid = require('../../hap').uuid;
 let Logger = require('../../libraries/system-log');
 let { SwitchEndpoint, LightEndpoint } = require('../../controller/device-manager/endpoint');
+let EndpointType = require('../../controller/device-manager/endpoint').EndpointType;
 
 let logger = new Logger(__filename);
 
@@ -24,8 +25,8 @@ const DeviceType = {
 
 // Device class
 class Device extends Accessory {
-    constructor(eui64, name, type, serialNumber = '', manufacturer = '', model = '') {
-        super(name, uuid.generate('hap-nodejs:accessories:' + type + name));
+    constructor(eui64, endpoint, type, serialNumber = '', manufacturer = '', model = '') {
+        super(eui64, uuid.generate('hap-nodejs:accessories:' + type + eui64));
         this.eui64 = eui64;
         this.type = type;
         this.endpoints = [];
@@ -41,25 +42,57 @@ class Device extends Accessory {
         // Add listener to identify event
         this.on('identify', (paired, callback) => {
             if (paired)
-                logger.debug('Device ' + this.eui64 + ' has been identified');
+                logger.debug('IDENTIFY device ' + this.eui64);
             callback();
         });
+        this.addEndpoint(endpoint, type);
+    }
+
+    getEndpoint(endpoint) {
+        let endpointName = this.eui64 + '_' + endpoint;
+        for (let i in this.endpoints) {
+            if (this.endpoints[i].name === endpointName) {
+                return this.endpoints[i];
+            }
+        }
+    }
+
+    addInformation(serialNumber, manufacturer, model) {
+        this.getService(Service.AccessoryInformation)
+            .setCharacteristic(Characteristic.SerialNumber, serialNumber)
+            .setCharacteristic(Characteristic.Manufacturer, manufacturer)
+            .setCharacteristic(Characteristic.Model, model)
     }
 
     addEndpoint(endpoint, type) {
-        logger.info("Adding endpoint %d to device %s", endpoint, this.eui64);
+        logger.info('ADD endpoint ' + endpoint + ' to device ' + this.eui64);
         switch (type) {
-            case DeviceType.SWITCH: {
+            case EndpointType.SWITCH: {
                 let newEndpoint = new SwitchEndpoint(this.eui64, endpoint);
                 this.addService(newEndpoint);
-                this.endpoints.push(newEndpoint.name);
+                this.endpoints.push(newEndpoint);
             } break;
-            case DeviceType.LIGHT: {
+            case EndpointType.LIGHT: {
                 let newEndpoint = new LightEndpoint(this.eui64, endpoint);
                 this.addService(newEndpoint);
-                this.endpoints.push(newEndpoint.name);
+                this.endpoints.push(newEndpoint);
             } break;
         }
+    }
+
+    removeEndpoint(endpoint) {
+        logger.info('REMOVE endpoint ' + endpoint + ' from device ' + this.eui64);
+        this.removeService(this.getEndpointName(endpoint));
+        for (let i in this.endpoints) {
+            if (this.endpoints[i] === this.getEndpointName(endpoint)) {
+                this.endpoints.splice(i, 1);
+                break;
+            }
+        }
+    }
+
+    updateEndpointValue(value, endpoint) {
+        this.getEndpoint(endpoint).updateValue(value);
     }
 }
 

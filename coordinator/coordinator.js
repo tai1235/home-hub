@@ -6,12 +6,11 @@
  */
 
 // Dependencies
-const ZigbeeGateway = require('./zigbee-gateway');
-const EventEmitter = require('events');
+const ZigbeeGateway = require('./zigbee-gateway').ZigbeeGateway;
 const Logger = require('../libraries/system-log');
 const DeviceManager = require('../controller/device-manager/device-manager');
-const Device = require('../controller/device-manager/device');
 const config = require('../config');
+const storage = require('node-persist');
 
 const logger = new Logger(__filename);
 
@@ -24,21 +23,19 @@ class Coordinator {
         this.deviceManager = new DeviceManager()
     }
 
-    handleDeviceJoined(callback) {
-        this.zigbeeGateway.on('device-joined', message => {
-            // Parse parameter from message
-
+    handleDeviceJoined() {
+        this.zigbeeGateway.on('device-joined', params => {
             // Create and store new device to cache
-            this.deviceManager.handleDeviceJoined(eui64, endpoint, type);
+            this.deviceManager.handleDeviceJoined(params.eui64, params.endpoint, params.type);
 
             // Store device's data to DB
 
             // Invoke the callback
-            callback();
+            // callback();
         })
     }
 
-    handleDeviceLeft(callback) {
+    handleDeviceLeft() {
         this.zigbeeGateway.on('device-left', message => {
             // Parse parameter from message
 
@@ -48,49 +45,56 @@ class Coordinator {
             // Store device's data to DB
 
             // Invoke the callback
-            callback();
+            // callback();
         })
     }
 
-    handleDeviceStatus(callback) {
-        this.zigbeeGateway.on('device-status', message => {
+    handleDeviceStatus() {
+        this.zigbeeGateway.on('device-response', params => {
             // Handle device status
+            this.deviceManager.handleDeviceStatus(params.value, params.eui64, params.endpoint);
 
             // Handle rule input
 
             // Handle group input
 
             // Invoke the callback
-            callback()
+            // callback()
         })
     }
 
-    handleRuleAdd(callback) {
+    handleRuleAdd() {
 
     }
 
-    handleRuleRemove(callback) {
+    handleRuleRemove() {
 
     }
 
-    handleRuleActive(callback) {
+    handleRuleActive() {
 
     }
 
-    handleRuleEnable(callback) {
+    handleRuleEnable() {
 
     }
 
-    handleGroupAdd(callback) {
+    handleGroupAdd() {
 
     }
 
-    handleGroupRemove(callback) {
+    handleGroupRemove() {
 
     }
 
-    handleGroupEnable(callback) {
+    handleGroupEnable() {
 
+    }
+
+    start() {
+        // Initiate the device manager
+        storage.initSync();
+        this.deviceManager.start();
     }
 
     process() {
@@ -110,4 +114,4 @@ class Coordinator {
     }
 }
 
-module.exports = Coordinator
+module.exports = Coordinator;

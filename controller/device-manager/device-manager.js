@@ -10,6 +10,7 @@ let Accessory = require('../../hap').Accessory;
 let Bridge = require('../../hap').Bridge;
 let uuid = require('../../hap').uuid;
 let Logger = require('../../libraries/system-log');
+let Device = require('../../controller/device-manager/device').Device;
 
 let logger = new Logger(__filename);
 
@@ -17,17 +18,15 @@ class DeviceManager extends Bridge {
     constructor() {
         super('Home Hub', uuid.generate('Home Hub'));
         this.devices = [];
-        this.currentEui64 = '';
-        this.currentEndpoint = 0;
         this.on('identify', (paired, callback) => {
             if (paired)
                 logger.info('Bridge has been identified');
             callback();
         });
         this.bridgeConfig = {
-            username: "9C:53:12:45:F2:C3",
+            username: '9C:13:12:45:F2:C3',
             port: 56423,
-            pincode: "031-45-154",
+            pincode: '031-45-154',
             category: Accessory.Categories.BRIDGE
         }
     }
@@ -37,21 +36,9 @@ class DeviceManager extends Bridge {
     }
 
     addDevice(deviceToAdd) {
-        let deviceExisted = false;
-        for (let i in this.devices) {
-            if (this.devices[i].eui64 === deviceToAdd.eui64) {
-                logger.debug('This device is existed');
-                deviceExisted = true;
-            }
-        }
-        if (!deviceExisted) {
-            // Adding new device
-            logger.info("Adding new device: " + eui64);
-            this.devices.push(deviceToAdd);
-            this.addBridgedAccessory(deviceToAdd);
-        } else {
-            // Update device
-        }
+        logger.info('ADD device: ' + deviceToAdd.eui64 + ' to bridge');
+        this.devices.push(deviceToAdd);
+        this.addBridgedAccessory(deviceToAdd);
     }
 
     getDevice(eui64) {
@@ -62,7 +49,12 @@ class DeviceManager extends Bridge {
         }
     }
 
+    loadDeviceFromDB(deviceInfo) {
+        // TODO
+    }
+
     removeDevice(eui64) {
+        logger.info('REMOVE device: ' + deviceToAdd.eui64 + ' from bridge');
         for (let i in this.bridgedAccessories) {
             if (eui64 === this.devices[i].eui64) {
                 this.removeBridgedAccessories(this.devices[i]);
@@ -72,22 +64,20 @@ class DeviceManager extends Bridge {
     }
 
     handleDeviceJoined(eui64, endpoint, type) {
-        if (this.currentEui64 === eui64) {
-            if (this.currentEndpoint === endpoint) {
-                logger.info("This endpoint has been added");
-            } else {
-                this.getDevice(eui64).addEndpoint(endpoint, type);
-                this.currentEndpoint = endpoint;
-            }
-        } else {
+        if (this.getDevice(eui64) === undefined) {
             let newDevice = new Device(eui64, endpoint, type);
             this.addDevice(newDevice);
-            this.currentEui64 = eui64;
+        } else {
+            this.getDevice(eui64).addEndpoint(endpoint, type);
         }
     }
 
     handleDeviceLeft(eui64) {
         this.removeDevice(eui64);
+    }
+
+    handleDeviceStatus(value, eui64, endpoint) {
+        this.getDevice(eui64).updateEndpointValue(value, endpoint);
     }
 }
 
