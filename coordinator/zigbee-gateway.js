@@ -19,6 +19,7 @@ const SubscribeTopics = {
     ZclResponse: 'zclresponse',
 };
 
+// TODO Liet ke cac command
 const ZigbeeCommand = {
     CreateNetwork: 'pluin network-creator start',
     PermitJoin: '',
@@ -28,31 +29,16 @@ const ZigbeeCommand = {
 
 const PublishTopic = 'command';
 
+// TODO Taibeo Liet ke cac clusterId
 const ClusterID = {
     BASIC: '0x0000',
     ONOFF: '0x0006'
 };
 
+// TODO Taibeo Liet ke cac attribute
 const Attribute = {
 
 };
-
-//TODO Get command value from cluster ID and command data
-_getClusterValue = (clusterId, commandData) => {
-    let attribute = {};
-    switch (clusterId) {
-        case '0x0000': {
-
-        } break;
-        case '0x0006': {
-            attribute.id = commandData.substring(2, 5);
-            attribute.dataType = commandData.substring(6, 7);
-            attribute.dataValue = commandData.substring(7, 8)
-        } break;
-    }
-    return attribute;
-};
-
 
 // Container for all methods
 class ZigbeeGateway extends EventEmitter {
@@ -133,7 +119,7 @@ class ZigbeeGateway extends EventEmitter {
                  * {Number} params.on - Value to assign to the endpoint
                  */
                 payload.commands.push({
-                    command: params.on === 1 ? ZigbeeCommand.OnOff + ' on' : ZigbeeCommand.OnOff + ' off',
+                    command: params.on ? ZigbeeCommand.OnOff + ' on' : ZigbeeCommand.OnOff + ' off',
                     postDelayMs: postTimeDelay
                 });
                 payload.commands.push({
@@ -152,6 +138,23 @@ class ZigbeeGateway extends EventEmitter {
         }
         return JSON.stringify(payload);
     }
+
+    //TODO Taibeo Get command value from cluster ID and command data
+    static _parseClusterValue(clusterId, commandData) {
+        let attribute = {};
+        switch (clusterId) {
+            // TODO Taibeo Switch theo cac case cuar Attribute duoc liet ke o tren
+            case '0x0000': {
+
+            } break;
+            case '0x0006': {
+                attribute.id = commandData.substring(2, 5);
+                attribute.dataType = commandData.substring(6, 7);
+                attribute.dataValue = commandData.substring(7, 8);
+            } break;
+        }
+        return attribute;
+    };
 }
 
 module.exports = { ZigbeeGateway, ZigbeeCommand};

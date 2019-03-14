@@ -9,8 +9,12 @@ let logger = new Logger(__filename);
 let zigbeePublisher = new ZigbeeGateway(config.gatewayId);
 
 const EndpointType = {
-    SWITCH: '',
-    LIGHT: '',
+    // TODO Taibeo Dien
+    SWITCH: '0x0000',
+    LIGHT: '0x0100',
+    // FAN: '0x',
+    DOORLOCK: '0x000A',
+    THERMOSTAT: '0x0301',
 
 };
 
@@ -53,12 +57,9 @@ class LightEndpoint extends Service.Lightbulb {
         super(eui64 + '_' + endpoint, endpoint);
         this.eui64 = eui64;
         this.endpoint = endpoint;
-        this.name = eui64 + '_' + endpoint;
         this.status = { on: false, brightness: 0 };
-        logger.info("Adding service " + this.name);
         this.getCharacteristic(Characteristic.On)
             .on('set', (value, callback) => {
-                logger.debug("Set characteristic on of service " + this.name);
                 this.status.on = value;
                 let payload = ZigbeeGateway.createZigbeeCommand(ZigbeeCommand.OnOff, {
                     eui64: this.eui64,
@@ -93,4 +94,4 @@ class LightEndpoint extends Service.Lightbulb {
     }
 }
 
-module.exports = { SwitchEndpoint, LightEndpoint };
+module.exports = { EndpointType, SwitchEndpoint, LightEndpoint };

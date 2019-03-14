@@ -28,6 +28,7 @@ class Coordinator {
         this.zigbeeGateway.on('device-joined', message => {
             // Parse parameter from message
 
+
             // Create and store new device to cache
             this.deviceManager.handleDeviceJoined(eui64, endpoint, type);
 
@@ -54,7 +55,10 @@ class Coordinator {
 
     handleDeviceStatus(callback) {
         this.zigbeeGateway.on('device-status', message => {
+            // Parse parameter from message
+
             // Handle device status
+            this.deviceManager.handleDeviceStatus(value, eui64, endpoint);
 
             // Handle rule input
 

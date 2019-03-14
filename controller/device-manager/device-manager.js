@@ -10,6 +10,7 @@ let Accessory = require('../../hap').Accessory;
 let Bridge = require('../../hap').Bridge;
 let uuid = require('../../hap').uuid;
 let Logger = require('../../libraries/system-log');
+let Device = require('../../controller/device-manager/device').Device;
 
 let logger = new Logger(__filename);
 
@@ -46,7 +47,7 @@ class DeviceManager extends Bridge {
         }
         if (!deviceExisted) {
             // Adding new device
-            logger.info("Adding new device: " + eui64);
+            logger.info("Adding new device: " + deviceToAdd.eui64);
             this.devices.push(deviceToAdd);
             this.addBridgedAccessory(deviceToAdd);
         } else {
@@ -62,6 +63,10 @@ class DeviceManager extends Bridge {
         }
     }
 
+    loadDeviceFromDB(deviceInfo) {
+        // TODO Load device from database
+    }
+
     removeDevice(eui64) {
         for (let i in this.bridgedAccessories) {
             if (eui64 === this.devices[i].eui64) {
@@ -72,22 +77,21 @@ class DeviceManager extends Bridge {
     }
 
     handleDeviceJoined(eui64, endpoint, type) {
-        if (this.currentEui64 === eui64) {
-            if (this.currentEndpoint === endpoint) {
-                logger.info("This endpoint has been added");
-            } else {
-                this.getDevice(eui64).addEndpoint(endpoint, type);
-                this.currentEndpoint = endpoint;
-            }
-        } else {
+        if (this.getDevice(eui64) !== undefined) {
             let newDevice = new Device(eui64, endpoint, type);
             this.addDevice(newDevice);
             this.currentEui64 = eui64;
+        } else {
+            this.getDevice(eui64).addEndpoint(endpoint, type);
         }
     }
 
     handleDeviceLeft(eui64) {
         this.removeDevice(eui64);
+    }
+
+    handleDeviceStatus(value, eui64, endpoint) {
+        this.getDevice(eui64).updateValue(value, endpoint);
     }
 }
 
