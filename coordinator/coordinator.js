@@ -7,10 +7,8 @@
 
 // Dependencies
 const ZigbeeGateway = require('./zigbee-gateway').ZigbeeGateway;
-const EventEmitter = require('events');
 const Logger = require('../libraries/system-log');
 const DeviceManager = require('../controller/device-manager/device-manager');
-const Device = require('../controller/device-manager/device');
 const config = require('../config');
 const storage = require('node-persist');
 
@@ -37,7 +35,7 @@ class Coordinator {
         })
     }
 
-    handleDeviceLeft(callback) {
+    handleDeviceLeft() {
         this.zigbeeGateway.on('device-left', message => {
             // Parse parameter from message
 
@@ -47,14 +45,13 @@ class Coordinator {
             // Store device's data to DB
 
             // Invoke the callback
-            callback();
+            // callback();
         })
     }
 
     handleDeviceStatus() {
         this.zigbeeGateway.on('device-response', params => {
             // Handle device status
-            console.log(params);
             this.deviceManager.handleDeviceStatus(params.value, params.eui64, params.endpoint);
 
             // Handle rule input
@@ -66,31 +63,31 @@ class Coordinator {
         })
     }
 
-    handleRuleAdd(callback) {
+    handleRuleAdd() {
 
     }
 
-    handleRuleRemove(callback) {
+    handleRuleRemove() {
 
     }
 
-    handleRuleActive(callback) {
+    handleRuleActive() {
 
     }
 
-    handleRuleEnable(callback) {
+    handleRuleEnable() {
 
     }
 
-    handleGroupAdd(callback) {
+    handleGroupAdd() {
 
     }
 
-    handleGroupRemove(callback) {
+    handleGroupRemove() {
 
     }
 
-    handleGroupEnable(callback) {
+    handleGroupEnable() {
 
     }
 
@@ -117,4 +114,4 @@ class Coordinator {
     }
 }
 
-module.exports = Coordinator
+module.exports = Coordinator;

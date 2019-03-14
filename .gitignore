@@ -1,6 +1,6 @@
 node_modules
+example.js
 test.js
-test1.js
 log.txt
 database
 persist

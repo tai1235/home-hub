@@ -24,9 +24,9 @@ class DeviceManager extends Bridge {
             callback();
         });
         this.bridgeConfig = {
-            username: "9C:13:12:45:F2:C3",
+            username: '9C:13:12:45:F2:C3',
             port: 56423,
-            pincode: "031-45-154",
+            pincode: '031-45-154',
             category: Accessory.Categories.BRIDGE
         }
     }
@@ -36,21 +36,9 @@ class DeviceManager extends Bridge {
     }
 
     addDevice(deviceToAdd) {
-        let deviceExisted = false;
-        for (let i in this.devices) {
-            if (this.devices[i].eui64 === deviceToAdd.eui64) {
-                logger.debug('This device is existed');
-                deviceExisted = true;
-            }
-        }
-        if (!deviceExisted) {
-            // Adding new device
-            logger.info("Adding new device: " + deviceToAdd.eui64);
-            this.devices.push(deviceToAdd);
-            this.addBridgedAccessory(deviceToAdd);
-        } else {
-            // Update device
-        }
+        logger.info('ADD device: ' + deviceToAdd.eui64 + ' to bridge');
+        this.devices.push(deviceToAdd);
+        this.addBridgedAccessory(deviceToAdd);
     }
 
     getDevice(eui64) {
@@ -62,10 +50,11 @@ class DeviceManager extends Bridge {
     }
 
     loadDeviceFromDB(deviceInfo) {
-        // TODO Load device from database
+        // TODO
     }
 
     removeDevice(eui64) {
+        logger.info('REMOVE device: ' + deviceToAdd.eui64 + ' from bridge');
         for (let i in this.bridgedAccessories) {
             if (eui64 === this.devices[i].eui64) {
                 this.removeBridgedAccessories(this.devices[i]);
@@ -88,7 +77,7 @@ class DeviceManager extends Bridge {
     }
 
     handleDeviceStatus(value, eui64, endpoint) {
-        this.getDevice(eui64).updateValue(value, endpoint);
+        this.getDevice(eui64).updateEndpointValue(value, endpoint);
     }
 }
 

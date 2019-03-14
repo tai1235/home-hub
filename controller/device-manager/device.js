@@ -42,7 +42,7 @@ class Device extends Accessory {
         // Add listener to identify event
         this.on('identify', (paired, callback) => {
             if (paired)
-                logger.debug('Device ' + this.eui64 + ' has been identified');
+                logger.debug('IDENTIFY device ' + this.eui64);
             callback();
         });
         this.addEndpoint(endpoint, type);
@@ -65,7 +65,7 @@ class Device extends Accessory {
     }
 
     addEndpoint(endpoint, type) {
-        logger.info("Adding endpoint " + endpoint + " to device " + this.eui64);
+        logger.info('ADD endpoint ' + endpoint + ' to device ' + this.eui64);
         switch (type) {
             case EndpointType.SWITCH: {
                 let newEndpoint = new SwitchEndpoint(this.eui64, endpoint);
@@ -81,7 +81,7 @@ class Device extends Accessory {
     }
 
     removeEndpoint(endpoint) {
-        logger.info("Removing endpoint " + endpoint + " from device " + this.eui64);
+        logger.info('REMOVE endpoint ' + endpoint + ' from device ' + this.eui64);
         this.removeService(this.getEndpointName(endpoint));
         for (let i in this.endpoints) {
             if (this.endpoints[i] === this.getEndpointName(endpoint)) {
@@ -91,8 +91,8 @@ class Device extends Accessory {
         }
     }
 
-    updateValue(value, endpoint) {
-        this.getEndpoint(endpoint).updateEndpointValue(value);
+    updateEndpointValue(value, endpoint) {
+        this.getEndpoint(endpoint).updateValue(value);
     }
 }
 
