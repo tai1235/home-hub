@@ -46,7 +46,7 @@ class SwitchEndpoint extends Service.Switch {
         return `${this.eui64}_${this.endpoint}`;
     }
 
-    updateValue(value) {
+    updateEndpointValue(value) {
         this.getCharacteristic(Characteristic.On)
             .updateValue(value, undefined);
     }

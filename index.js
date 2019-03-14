@@ -1,9 +1,8 @@
-const Logger = require('./libraries/system-log')
+const Coordinator = require('./coordinator/coordinator');
+const Logger = require('./libraries/system-log');
+
 const logger = new Logger(__filename)
+const coordinator = new Coordinator();
 
-console.log(__filename)
-
-logger.debug('fatal condition');
-logger.info('critical condition');
-logger.error('error condition');
-logger.warn('warning condition');
+coordinator.start();
+coordinator.process();

@@ -6,12 +6,13 @@
  */
 
 // Dependencies
-const ZigbeeGateway = require('./zigbee-gateway');
+const ZigbeeGateway = require('./zigbee-gateway').ZigbeeGateway;
 const EventEmitter = require('events');
 const Logger = require('../libraries/system-log');
 const DeviceManager = require('../controller/device-manager/device-manager');
 const Device = require('../controller/device-manager/device');
 const config = require('../config');
+const storage = require('node-persist');
 
 const logger = new Logger(__filename);
 
@@ -24,7 +25,7 @@ class Coordinator {
         this.deviceManager = new DeviceManager()
     }
 
-    handleDeviceJoined(callback) {
+    handleDeviceJoined() {
         this.zigbeeGateway.on('device-joined', params => {
             // Create and store new device to cache
             this.deviceManager.handleDeviceJoined(params.eui64, params.endpoint, params.type);
@@ -32,7 +33,7 @@ class Coordinator {
             // Store device's data to DB
 
             // Invoke the callback
-            callback();
+            // callback();
         })
     }
 
@@ -50,19 +51,18 @@ class Coordinator {
         })
     }
 
-    handleDeviceStatus(callback) {
-        this.zigbeeGateway.on('device-status', message => {
-            // Parse parameter from message
-
+    handleDeviceStatus() {
+        this.zigbeeGateway.on('device-response', params => {
             // Handle device status
-            this.deviceManager.handleDeviceStatus(value, eui64, endpoint);
+            console.log(params);
+            this.deviceManager.handleDeviceStatus(params.value, params.eui64, params.endpoint);
 
             // Handle rule input
 
             // Handle group input
 
             // Invoke the callback
-            callback()
+            // callback()
         })
     }
 
@@ -92,6 +92,12 @@ class Coordinator {
 
     handleGroupEnable(callback) {
 
+    }
+
+    start() {
+        // Initiate the device manager
+        storage.initSync();
+        this.deviceManager.start();
     }
 
     process() {

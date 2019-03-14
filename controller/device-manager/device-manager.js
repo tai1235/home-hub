@@ -18,15 +18,13 @@ class DeviceManager extends Bridge {
     constructor() {
         super('Home Hub', uuid.generate('Home Hub'));
         this.devices = [];
-        this.currentEui64 = '';
-        this.currentEndpoint = 0;
         this.on('identify', (paired, callback) => {
             if (paired)
                 logger.info('Bridge has been identified');
             callback();
         });
         this.bridgeConfig = {
-            username: "9C:53:12:45:F2:C3",
+            username: "9C:13:12:45:F2:C3",
             port: 56423,
             pincode: "031-45-154",
             category: Accessory.Categories.BRIDGE
@@ -77,10 +75,9 @@ class DeviceManager extends Bridge {
     }
 
     handleDeviceJoined(eui64, endpoint, type) {
-        if (this.getDevice(eui64) !== undefined) {
+        if (this.getDevice(eui64) === undefined) {
             let newDevice = new Device(eui64, endpoint, type);
             this.addDevice(newDevice);
-            this.currentEui64 = eui64;
         } else {
             this.getDevice(eui64).addEndpoint(endpoint, type);
         }

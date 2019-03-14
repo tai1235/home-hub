@@ -26,7 +26,7 @@ const DeviceType = {
 // Device class
 class Device extends Accessory {
     constructor(eui64, endpoint, type, serialNumber = '', manufacturer = '', model = '') {
-        super(name, uuid.generate('hap-nodejs:accessories:' + type + name));
+        super(eui64, uuid.generate('hap-nodejs:accessories:' + type + eui64));
         this.eui64 = eui64;
         this.type = type;
         this.endpoints = [];
@@ -48,8 +48,13 @@ class Device extends Accessory {
         this.addEndpoint(endpoint, type);
     }
 
-    getEndpointName(endpoint) {
-        return this.eui64 + '_' + endpoint;
+    getEndpoint(endpoint) {
+        let endpointName = this.eui64 + '_' + endpoint;
+        for (let i in this.endpoints) {
+            if (this.endpoints[i].name === endpointName) {
+                return this.endpoints[i];
+            }
+        }
     }
 
     addInformation(serialNumber, manufacturer, model) {
@@ -65,12 +70,12 @@ class Device extends Accessory {
             case EndpointType.SWITCH: {
                 let newEndpoint = new SwitchEndpoint(this.eui64, endpoint);
                 this.addService(newEndpoint);
-                this.endpoints.push(newEndpoint.name);
+                this.endpoints.push(newEndpoint);
             } break;
             case EndpointType.LIGHT: {
                 let newEndpoint = new LightEndpoint(this.eui64, endpoint);
                 this.addService(newEndpoint);
-                this.endpoints.push(newEndpoint.name);
+                this.endpoints.push(newEndpoint);
             } break;
         }
     }
@@ -87,8 +92,7 @@ class Device extends Accessory {
     }
 
     updateValue(value, endpoint) {
-        this.getService(this.getEndpointName(endpoint))
-            .updateValue(value);
+        this.getEndpoint(endpoint).updateEndpointValue(value);
     }
 }
 

@@ -170,23 +170,22 @@ class ZigbeeGateway extends EventEmitter {
             let messageData = JSON.parse(message.toString());
             switch (topicLevel[2]) {
                 case SubscribeTopics.DeviceJoined: {
-                    if (this.listener('device-joined').length > 0) {
-                        // TODO Parse eui64 from message
-                        // TODO Parse number of endpoint (fixed / from message)
-                        // TODO Parse device information ()
-                        // TODO Pass device's data to the event emitter
-                        this.emit('device-joined', message);
-                    }
+                    let params = {
+                        type: messageData.deviceType,
+                        eui64: messageData.deviceEndpoint.eui64,
+                        endpoint: messageData.deviceEndpoint.endpoint
+                    };
+                    this.emit('device-joined', params);
                 } break;
                 case SubscribeTopics.DeviceLeft: {
-                    if (this.listener('device-left').length > 0) {
-                        this.emit('device-left', message);
-                    }
+                    this.emit('device-left', message);
                 } break;
                 case SubscribeTopics.ZclResponse: {
-                    if (this.listener('device-response').length > 0) {
-                        this.emit('device-response', message);
-                    }
+                    let params = {};
+                    params.value = this._parseClusterValue(messageData.clusterId, messageData.commandData);
+                    params.eui64 = messageData.deviceEndpoint.eui64;
+                    params.endpoint = messageData.deviceEndpoint.endpoint;
+                    this.emit('device-response', params);
                 } break;
             }
         })
@@ -231,22 +230,20 @@ class ZigbeeGateway extends EventEmitter {
     }
 
     //TODO Taibeo Get command value from cluster ID and command data
-    static _parseClusterValue(clusterId, commandData) {
-        let attribute = {};
+     _parseClusterValue(clusterId, commandData) {
+        console.log(clusterId + ' ' + commandData.substring(2, 5) + ' ' + commandData.substring(8, 9) + ' ' + commandData.substring(10, 11));
         switch (clusterId) {
             // TODO Taibeo Switch theo cac case cuar Attribute duoc liet ke o tren
             case ZigbeeCluster.ONOFF.ID: {
-                switch (commandData.substring(2, 5)) {
+                switch (commandData.substr(2, 4)) {
                     case ZigbeeCluster.ONOFF.Attribute.ZCL_ON_OFF_ATTRIBUTE_ID.ID: {
-                        if (commandData.substring(6, 7) !== ZigbeeCluster.ONOFF.Attribute.ZCL_ON_OFF_ATTRIBUTE_ID.type) {
+                        if (commandData.substr(8, 2) !== ZigbeeCluster.ONOFF.Attribute.ZCL_ON_OFF_ATTRIBUTE_ID.type) {
                             return false;
                         } else {
-                            attribute.id = ZigbeeCluster.ONOFF.Attribute.ZCL_ON_OFF_ATTRIBUTE_ID.ID;
-                            attribute.dataType = ZigbeeCluster.ONOFF.Attribute.ZCL_ON_OFF_ATTRIBUTE_ID.type;
-                            attribute.dataValue = commandData.substring(7, 8) === '01' ? true : false;
+                            return commandData.substr(10, 2) === '01';
                         }
                     } break;
-                    case ZigbeeCluster.ONOFF.Attribute.ZCL_ON_OFF_CLUSTER_CLUSTER_REVISION_SERVER_ATTRIBUTE_ID.ID {
+                    case ZigbeeCluster.ONOFF.Attribute.ZCL_ON_OFF_CLUSTER_CLUSTER_REVISION_SERVER_ATTRIBUTE_ID.ID: {
 
                     } break;
                     default: {
@@ -255,10 +252,9 @@ class ZigbeeGateway extends EventEmitter {
                 }
             } break;
             case ZigbeeCluster.BASIC.ID: {
-                
+
             } break;
         }
-        return attribute;
     };
 }
 
