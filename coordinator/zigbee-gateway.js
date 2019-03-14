@@ -19,6 +19,8 @@ const SubscribeTopics = {
     ZclResponse: 'zclresponse',
 };
 
+const PublishTopic = 'command';
+
 // TODO Liet ke cac command
 const ZigbeeCommand = {
     CreateNetwork: 'plugin network-creator start',
@@ -26,8 +28,6 @@ const ZigbeeCommand = {
     PluginDeviceTable: 'plugin device-table',
     OnOff: 'zcl on-off',
 };
-
-const PublishTopic = 'command';
 
 // TODO Taibeo Liet ke cac clusterId
 const ZigbeeCluster = {
@@ -166,7 +166,7 @@ class ZigbeeGateway extends EventEmitter {
     process() {
         this.client.on('message', (topic, message) => {
             let topicLevel = topic.split('/');
-            logger.info('Gateway[' + topicLevel[2] + ']' + ': ' + message);
+            logger.info('RECEIVE ' + topicLevel[2] + ': ' + message);
             let messageData = JSON.parse(message.toString());
             switch (topicLevel[2]) {
                 case SubscribeTopics.DeviceJoined: {
@@ -182,9 +182,9 @@ class ZigbeeGateway extends EventEmitter {
                 } break;
                 case SubscribeTopics.ZclResponse: {
                     let params = {};
-                    params.value = this._parseClusterValue(messageData.clusterId, messageData.commandData);
                     params.eui64 = messageData.deviceEndpoint.eui64;
                     params.endpoint = messageData.deviceEndpoint.endpoint;
+                    params.value = ZigbeeGateway._parseClusterValue(messageData.clusterId, messageData.commandData);
                     this.emit('device-response', params);
                 } break;
             }
@@ -192,7 +192,7 @@ class ZigbeeGateway extends EventEmitter {
     }
 
     publish(message) {
-        logger.info('Gateway[' + PublishTopic + ']' + ': ' + message);
+        logger.info('SEND ' + PublishTopic + ': ' + message);
         let topic = 'gw/' + this.eui64 + '/' + PublishTopic;
         this.client.publish(topic, message);
     }
@@ -212,8 +212,9 @@ class ZigbeeGateway extends EventEmitter {
                     command: params.on ? ZigbeeCommand.OnOff + ' on' : ZigbeeCommand.OnOff + ' off',
                     postDelayMs: postTimeDelay
                 });
+                let eui64 = params.eui64.split('x');
                 payload.commands.push({
-                    command: ZigbeeCommand.PluginDeviceTable + ' send ' + params.eui64 + ' ' + params.endpoint,
+                    command: ZigbeeCommand.PluginDeviceTable + ' send ' + eui64[1] + ' ' + params.endpoint,
                     postDelayMs: postTimeDelay
                 });
             } break;
@@ -230,8 +231,8 @@ class ZigbeeGateway extends EventEmitter {
     }
 
     //TODO Taibeo Get command value from cluster ID and command data
-     _parseClusterValue(clusterId, commandData) {
-        console.log(clusterId + ' ' + commandData.substring(2, 5) + ' ' + commandData.substring(8, 9) + ' ' + commandData.substring(10, 11));
+     static _parseClusterValue(clusterId, commandData) {
+        let value = {};
         switch (clusterId) {
             // TODO Taibeo Switch theo cac case cuar Attribute duoc liet ke o tren
             case ZigbeeCluster.ONOFF.ID: {
@@ -240,7 +241,7 @@ class ZigbeeGateway extends EventEmitter {
                         if (commandData.substr(8, 2) !== ZigbeeCluster.ONOFF.Attribute.ZCL_ON_OFF_ATTRIBUTE_ID.type) {
                             return false;
                         } else {
-                            return commandData.substr(10, 2) === '01';
+                            value.on = commandData.substr(10, 2) === '01';
                         }
                     } break;
                     case ZigbeeCluster.ONOFF.Attribute.ZCL_ON_OFF_CLUSTER_CLUSTER_REVISION_SERVER_ATTRIBUTE_ID.ID: {
@@ -255,6 +256,7 @@ class ZigbeeGateway extends EventEmitter {
 
             } break;
         }
+        return value;
     };
 }
 
