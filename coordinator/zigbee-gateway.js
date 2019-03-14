@@ -84,7 +84,12 @@ class ZigbeeGateway extends EventEmitter {
                         // TODO Parse number of endpoint (fixed / from message)
                         // TODO Parse device information ()
                         // TODO Pass device's data to the event emitter
-                        this.emit('device-joined', message);
+                        let params = {
+                            type: messageData.deviceType,
+                            eui64: messageData.deviceEndpoint.eui64,
+                            endpoint: messageData.deviceEndpoint.endpoint
+                        };
+                        this.emit('device-joined', params);
                     }
                 } break;
                 case SubscribeTopics.DeviceLeft: {

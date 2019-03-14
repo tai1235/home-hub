@@ -25,12 +25,9 @@ class Coordinator {
     }
 
     handleDeviceJoined(callback) {
-        this.zigbeeGateway.on('device-joined', message => {
-            // Parse parameter from message
-
-
+        this.zigbeeGateway.on('device-joined', params => {
             // Create and store new device to cache
-            this.deviceManager.handleDeviceJoined(eui64, endpoint, type);
+            this.deviceManager.handleDeviceJoined(params.eui64, params.endpoint, params.type);
 
             // Store device's data to DB
 
