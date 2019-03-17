@@ -29,7 +29,7 @@ class ZigbeeGateway extends EventEmitter {
         this.eui64 = eui64;
         this.clientId = helpers.createRandomString(32);
         this.client = mqtt.connect({
-            host: '192.168.11.79',
+            host: '192.168.1.56',
             port: 1883,
             clientId: this.clientId,
             protocol: 'mqtt'
@@ -96,11 +96,21 @@ class ZigbeeGateway extends EventEmitter {
         switch (cmd) {
             case ZigbeeCommand.Plugin.FormNetwork: {
                 /**
-                 * {Object} params - Required params for this command
-                 * {String} params.eui64 - Device used for this command
-                 * {Number} params.endpoint - Endpoint to execute this command
-                 * {Number} params.level - Value to assign to the endpoint
+                 * {number} params.boolean - Whether or not to form a centralized network. Should let it be true.
                  */
+                payload.commands.push({
+                    command: ZigbeeCommand.Plugin.FormNetwork + ' 1',
+                    postDelayMs : postTimeDelay
+                })
+            } break;
+            case ZigbeeCommand.Plugin.LeaveNetwork: {
+                /**
+                 * NONE
+                 */
+                payload.commands.push({
+                    command: ZigbeeCommand.Plugin.LeaveNetwork,
+                    postDelayMs : postTimeDelay
+                })
             } break;
             case ZigbeeCommand.OnOff.On: {
                 /**
@@ -151,15 +161,24 @@ class ZigbeeGateway extends EventEmitter {
             } break;
             case ZigbeeCommand.Plugin.PermitJoin: {
                 /**
-                 * {Object} params - Required params for this command
-                 * {String} params.eui64 - Device used for this command
-                 * {Number} params.endpoint - Endpoint to execute this command
-                 * {Number} params.level - Value to assign to the endpoint
+                 * NONE
                  */
                 payload.commands.push({
-                    command: params
+                    command: ZigbeeCommand.Plugin.PermitJoin,
+                    postDelayMs: postTimeDelay
                 })
             } break;
+            case ZigbeeCommand.Plugin.PermitStopJoin: {
+                /**
+                 * NONE
+                 */
+                payload.commands.push({
+                    command: ZigbeeCommand.Plugin.PermitStopJoin,
+                    postDelayMs: postTimeDelay
+                })
+            } break;
+            default:
+            break;
         }
         return JSON.stringify(payload);
     }
@@ -172,13 +191,32 @@ class ZigbeeGateway extends EventEmitter {
         switch (clusterId) {
             // TODO Taibeo Switch theo cac case cuar Attribute duoc liet ke o tren
             case ZigbeeCluster.BASIC.ID: {
-
+                switch(commandData.substr(2,4)){
+                    case ZigbeeCluster.BASIC.Attribute.ZCL_MANUFACTURER_NAME_ATTRIBUTE_ID.ID:{
+                        if(commandData.substr(8, 2) !== ZigbeeCluster.BASIC.Attribute.ZCL_MANUFACTURER_NAME_ATTRIBUTE_ID.type){
+                            break;
+                        }else{
+                            value.manufacturer = hex2string(commandData.substr(10, 8));
+                            logger.debug(value.manufacturer);
+                        }
+                    } break;
+                    case ZigbeeCluster.BASIC.Attribute.ZCL_MODEL_IDENTIFIER_ATTRIBUTE_ID.ID:{
+                        if(commandData.subscribe(8, 2) !== ZigbeeCluster.BASIC.Attribute.ZCL_MODEL_IDENTIFIER_ATTRIBUTE_ID.type){
+                            break;
+                        }else{
+                            value.model = hex2string(commandData.substr(10,12));
+                            logger.debug(value.model);
+                        }
+                    } break;
+                    default:
+                    break;
+                }
             } break;
             case ZigbeeCluster.ONOFF.ID: {
                 switch (commandData.substr(2, 4)) {
                     case ZigbeeCluster.ONOFF.Attribute.ZCL_ON_OFF_ATTRIBUTE_ID.ID: {
                         if (commandData.substr(8, 2) !== ZigbeeCluster.ONOFF.Attribute.ZCL_ON_OFF_ATTRIBUTE_ID.type) {
-                            return false;
+                            break;
                         } else {
                             value.on = commandData.substr(10, 2) === '01';
                         }
@@ -190,6 +228,9 @@ class ZigbeeGateway extends EventEmitter {
 
                     } break;
                 }
+            } break;
+            case ZigbeeCluster.LEVELCONTROL.ID: {
+
             } break;
         }
         return value;

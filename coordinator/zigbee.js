@@ -6,6 +6,7 @@ const ZigbeeCommand = {
     },
     Plugin: {
         FormNetwork: 'plugin network-creator start',
+        LeaveNetwork: 'network leave',
         PermitJoin: 'plugin network-creator-security open-network',
         PermitStopJoin: 'plugin network-creator-security close-network',
         DeviceTable: 'plugin device-table send'
