@@ -20,11 +20,11 @@ class DeviceManager extends Bridge {
         this.devices = [];
         this.on('identify', (paired, callback) => {
             if (paired)
-                logger.info('Bridge has been identified');
+                logger.info('IDENTIFY homekit bridge');
             callback();
         });
         this.bridgeConfig = {
-            username: '9C:13:12:45:F2:C3',
+            username: '9C:13:12:45:F5:C3',
             port: 56423,
             pincode: '031-45-154',
             category: Accessory.Categories.BRIDGE
@@ -32,11 +32,12 @@ class DeviceManager extends Bridge {
     }
 
     start() {
+        logger.info('START homekit bridge');
         this.publish(this.bridgeConfig);
     }
 
     addDevice(deviceToAdd) {
-        logger.info('ADD device: ' + deviceToAdd.eui64 + ' to bridge');
+        logger.info('ADD device ' + deviceToAdd.eui64);
         this.devices.push(deviceToAdd);
         this.addBridgedAccessory(deviceToAdd);
     }
@@ -54,9 +55,9 @@ class DeviceManager extends Bridge {
     }
 
     removeDevice(eui64) {
-        logger.info('REMOVE device: ' + deviceToAdd.eui64 + ' from bridge');
         for (let i in this.bridgedAccessories) {
             if (eui64 === this.devices[i].eui64) {
+                logger.info('REMOVE device ' + eui64);
                 this.removeBridgedAccessories(this.devices[i]);
                 this.devices.splice(i, 1);
             }
@@ -73,11 +74,14 @@ class DeviceManager extends Bridge {
     }
 
     handleDeviceLeft(eui64) {
-        this.removeDevice(eui64);
+        if (this.getDevice(eui64) !== undefined)
+            this.removeDevice(eui64);
     }
 
     handleDeviceStatus(value, eui64, endpoint) {
-        this.getDevice(eui64).updateEndpointValue(value, endpoint);
+        if (this.getDevice(eui64) !== undefined) {
+            this.getDevice(eui64).updateEndpointValue(value, endpoint);
+        }
     }
 }
 

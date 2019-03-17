@@ -15,8 +15,8 @@ environments.staging = {
     httpsPort: 3001,
     envName: 'staging',
     hashingSecret: 'alpaca',
-    logPath: '/home/tainv/home-hub/log.txt',
-    gatewayId: '000B57FFFE572517'
+    logPath:  __dirname + '/log.txt',
+    gatewayId: '00B57FFFE51BF102'
 };
 
 // Production environment
@@ -26,7 +26,7 @@ environments.production = {
     httpsPort: 5001,
     envName: 'production',
     hashingSecret: 'wolverine',
-    logPath: '/home/tainv/home-hub/log.txt',
+    logPath: __dirname + '/log.txt',
     gatewayId: '000B57FFFE572517'
 };
 

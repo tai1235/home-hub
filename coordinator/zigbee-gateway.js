@@ -10,6 +10,7 @@ const EventEmitter = require('events');
 const Logger = require('../libraries/system-log');
 const mqtt = require('mqtt');
 const helpers = require('../libraries/helpers');
+const { ZigbeeCommand, ZigbeeCluster } = require('./zigbee');
 
 const logger = new Logger(__filename);
 
@@ -19,117 +20,7 @@ const SubscribeTopics = {
     ZclResponse: 'zclresponse',
 };
 
-const PublishTopic = 'command';
-
-// TODO Liet ke cac command
-const ZigbeeCommand = {
-    CreateNetwork: 'plugin network-creator start',
-    PermitJoin: '',
-    PluginDeviceTable: 'plugin device-table',
-    OnOff: 'zcl on-off',
-};
-
-// TODO Taibeo Liet ke cac clusterId
-const ZigbeeCluster = {
-    BASIC: {
-        ID: '0x0000',
-        Attribute: {
-            ZCL_VERSION_ATTRIBUTE_ID: {
-                ID: '0002',
-                type: '20'
-            },
-            ZCL_MANUFACTURER_NAME_ATTRIBUTE_ID: {
-                ID: '0004',
-                type: '42'
-            },
-            ZCL_MODEL_IDENTIFIER_ATTRIBUTE_ID: {
-                ID: '0005',
-                type: '42'
-            },
-            ZCL_POWER_SOURCE_ATTRIBUTE_ID: {
-                ID: '0007',
-                type: '30'
-            },
-            ZCL_BASIC_CLUSTER_CLUSTER_REVISION_SERVER_ATTRIBUTE_ID: {
-                ID: 'FFFD',
-                type: '21'
-            }
-        }
-    },
-    ONOFF: {
-        ID: '0x0006',
-        Attribute: {
-            ZCL_ON_OFF_ATTRIBUTE_ID: {
-                ID: '0000',
-                type: '10'
-            },
-            ZCL_ON_OFF_CLUSTER_CLUSTER_REVISION_SERVER_ATTRIBUTE_ID: {
-                ID: 'FFFD',
-                type: '21'
-            }
-        },
-        Command: {
-            On: '01',
-            Off: '00',
-            Toggle: '02',
-            OffWithEffect: '40',
-            OnWithTimeOff: '42'
-        }
-    },
-    IDENTIFY: {
-        ID: '0x0003',
-        Attribute: {
-            ZCL_IDENTIFY_TIME_ATTRIBUTE_ID:{
-                ID: '0000',
-                type: '21'
-            },
-            ZCL_COMMISSION_STATE_ATTRIBUTE_ID: {
-                ID: '0001',
-                type: '18'
-            },
-            ZCL_IDENTIFY_CLUSTER_CLUSTER_REVISION_SERVER_ATTRIBUTE_ID: {
-                ID: 'FFFD',
-                type: '21'
-            }
-        },
-        Command: {
-            Identify: '00',
-            IdentifyQuery: '01'
-        }
-    },
-    LEVELCONTROL: {
-        ID: '0x0008',
-        Attribute: {
-            ZCL_CURRENT_LEVEL_ATTRIBUTE_ID: {
-                ID: '0000',
-                type: '20'
-            },
-            ZCL_LEVEL_CONTROL_REMAINING_TIME_ATTRIBUTE_ID: {
-                ID: '0001',
-                type: '21'
-            },
-            ZCL_ON_LEVEL_ATTRIBUTE_ID: {
-                ID: '0011',
-                type: '20'
-            },
-            ZCL_LEVEL_CONTROL_CLUSTER_CLUSTER_REVISION_SERVER_ATTRIBUTE_ID: {
-                ID: 'FFFD',
-                type: '21'
-            }
-        },
-        Command: {
-            MoveToLevel: '00',
-            Move: '01',
-            Step: '02',
-            Stop: '03',
-            MoveToLevelWithOnOff: '04',
-            MoveWithOnOff: '05',
-            StepWithOnOff: '06',
-            StopWithOnOff: '07'
-        }
-
-    }
-};
+const PublishTopic = 'commands';
 
 // Container for all methods
 class ZigbeeGateway extends EventEmitter {
@@ -138,7 +29,7 @@ class ZigbeeGateway extends EventEmitter {
         this.eui64 = eui64;
         this.clientId = helpers.createRandomString(32);
         this.client = mqtt.connect({
-            host: 'localhost',
+            host: '192.168.11.79',
             port: 1883,
             clientId: this.clientId,
             protocol: 'mqtt'
@@ -146,6 +37,7 @@ class ZigbeeGateway extends EventEmitter {
     }
 
     getConnectStatus(callback) {
+        logger.info('START mqtt client');
         this.client.on('connect', () => {
             logger.debug("Connected to broker");
             this.client.subscribe([
@@ -166,7 +58,7 @@ class ZigbeeGateway extends EventEmitter {
     process() {
         this.client.on('message', (topic, message) => {
             let topicLevel = topic.split('/');
-            logger.info('RECEIVE ' + topicLevel[2] + ': ' + message);
+            logger.debug('RECEIVE ' + topicLevel[2] + ': ' + message);
             let messageData = JSON.parse(message.toString());
             switch (topicLevel[2]) {
                 case SubscribeTopics.DeviceJoined: {
@@ -192,7 +84,7 @@ class ZigbeeGateway extends EventEmitter {
     }
 
     publish(message) {
-        logger.info('SEND ' + PublishTopic + ': ' + message);
+        logger.debug('SEND ' + PublishTopic + ': ' + message);
         let topic = 'gw/' + this.eui64 + '/' + PublishTopic;
         this.client.publish(topic, message);
     }
@@ -200,31 +92,73 @@ class ZigbeeGateway extends EventEmitter {
     static createZigbeeCommand(cmd, params, postTimeDelay = 0) {
         let payload = {};
         payload.commands = [];
+        let eui64 = params.eui64.split('x')[1];
         switch (cmd) {
-            case ZigbeeCommand.OnOff: {
+            case ZigbeeCommand.Plugin.FormNetwork: {
                 /**
                  * {Object} params - Required params for this command
                  * {String} params.eui64 - Device used for this command
                  * {Number} params.endpoint - Endpoint to execute this command
-                 * {Number} params.on - Value to assign to the endpoint
+                 * {Number} params.level - Value to assign to the endpoint
+                 */
+            } break;
+            case ZigbeeCommand.OnOff.On: {
+                /**
+                 * {Object} params - Required params for this command
+                 * {String} params.eui64 - Device used for this command
+                 * {Number} params.endpoint - Endpoint to execute this command
                  */
                 payload.commands.push({
-                    command: params.on ? ZigbeeCommand.OnOff + ' on' : ZigbeeCommand.OnOff + ' off',
+                    command: ZigbeeCommand.OnOff.On,
                     postDelayMs: postTimeDelay
                 });
-                let eui64 = params.eui64.split('x');
                 payload.commands.push({
-                    command: ZigbeeCommand.PluginDeviceTable + ' send ' + eui64[1] + ' ' + params.endpoint,
+                    command: ZigbeeCommand.Plugin.DeviceTable + ' {' + eui64 + '} ' + params.endpoint,
                     postDelayMs: postTimeDelay
                 });
             } break;
-            case ZigbeeCommand.CreateNetwork: {
+            case ZigbeeCommand.OnOff.Off: {
                 /**
                  * {Object} params - Required params for this command
                  * {String} params.eui64 - Device used for this command
                  * {Number} params.endpoint - Endpoint to execute this command
-                 * {Bool} params.on - Value to assign to the endpoint
                  */
+                payload.commands.push({
+                    command: ZigbeeCommand.OnOff.Off,
+                    postDelayMs: postTimeDelay
+                });
+                payload.commands.push({
+                    command: ZigbeeCommand.Plugin.DeviceTable + ' {' + eui64 + '} ' + params.endpoint,
+                    postDelayMs: postTimeDelay
+                });
+            } break;
+            case ZigbeeCommand.LevelControl.MoveToLevel: {
+                /**
+                 * {Object} params - Required params for this command
+                 * {String} params.eui64 - Device used for this command
+                 * {Number} params.endpoint - Endpoint to execute this command
+                 * {Number} params.level - Level assign to this endpoint
+                 * {Number} params.time - Transition time
+                 */
+                payload.commands.push({
+                    command: ZigbeeCommand.LevelControl.MoveToLevel + ' ' + params.level + ' ' + params.time,
+                    postDelayMs: postTimeDelay
+                });
+                payload.commands.push({
+                    command: ZigbeeCommand.Plugin.DeviceTable + ' {' + eui64  + '} ' + params.endpoint,
+                    postDelayMs: postTimeDelay
+                })
+            } break;
+            case ZigbeeCommand.Plugin.PermitJoin: {
+                /**
+                 * {Object} params - Required params for this command
+                 * {String} params.eui64 - Device used for this command
+                 * {Number} params.endpoint - Endpoint to execute this command
+                 * {Number} params.level - Value to assign to the endpoint
+                 */
+                payload.commands.push({
+                    command: params
+                })
             } break;
         }
         return JSON.stringify(payload);
@@ -232,9 +166,14 @@ class ZigbeeGateway extends EventEmitter {
 
     //TODO Taibeo Get command value from cluster ID and command data
      static _parseClusterValue(clusterId, commandData) {
+        if (commandData === undefined)
+            return;
         let value = {};
         switch (clusterId) {
             // TODO Taibeo Switch theo cac case cuar Attribute duoc liet ke o tren
+            case ZigbeeCluster.BASIC.ID: {
+
+            } break;
             case ZigbeeCluster.ONOFF.ID: {
                 switch (commandData.substr(2, 4)) {
                     case ZigbeeCluster.ONOFF.Attribute.ZCL_ON_OFF_ATTRIBUTE_ID.ID: {
@@ -252,12 +191,17 @@ class ZigbeeGateway extends EventEmitter {
                     } break;
                 }
             } break;
-            case ZigbeeCluster.BASIC.ID: {
-
-            } break;
         }
         return value;
     };
+
+    static hex2string(hex) {
+        let input = hex.toString();//force conversion
+        let str = '';
+        for (let i = 0; (i < input.length && input.substr(i, 2) !== '00'); i += 2)
+            str += String.fromCharCode(parseInt(input.substr(i, 2), 16));
+        return str;
+    };
 }
 
-module.exports = { ZigbeeGateway, ZigbeeCommand};
+module.exports = ZigbeeGateway;

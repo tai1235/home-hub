@@ -6,7 +6,7 @@
  */
 
 // Dependencies
-const ZigbeeGateway = require('./zigbee-gateway').ZigbeeGateway;
+const ZigbeeGateway = require('./zigbee-gateway');
 const Logger = require('../libraries/system-log');
 const DeviceManager = require('../controller/device-manager/device-manager');
 const config = require('../config');
@@ -17,9 +17,6 @@ const logger = new Logger(__filename);
 class Coordinator {
     constructor() {
         this.zigbeeGateway = new ZigbeeGateway(config.gatewayId);
-        this.zigbeeGateway.getConnectStatus(() => {
-            this.zigbeeGateway.process()
-        });
         this.deviceManager = new DeviceManager()
     }
 
@@ -40,7 +37,7 @@ class Coordinator {
             // Parse parameter from message
 
             // Create and store new device to cache
-            this.deviceManager.handleDeviceLeft(eui64);
+            // this.deviceManager.handleDeviceLeft(eui64);
 
             // Store device's data to DB
 
@@ -92,6 +89,10 @@ class Coordinator {
     }
 
     start() {
+        // Initiate the zigbee gateway
+        this.zigbeeGateway.getConnectStatus(() => {
+            this.zigbeeGateway.process()
+        });
         // Initiate the device manager
         storage.initSync();
         this.deviceManager.start();
