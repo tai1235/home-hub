@@ -6,58 +6,47 @@
  */
 
 // Dependencies
-const mongoose = require('mongoose');
+let mongoose = require('mongoose');
+let DevicesDB = require('./devices-db');
+let RulesDB = require('./rules-db');
+let GroupsDB = require('./groups-db');
+const Logger = require('../../libraries/system-log');
 
-let Schema = mongoose.Schema;
+let logger = new Logger(__filename);
 
-
-
-const _url = "mongodb://localhost:27017";
-const _dbName = "home-hub";
-const _options = { useNewUrlParser: true };
-
-// Container of the module
-const db_manager = {};
-
-// All database used in this project
-db_manager.database = {
-    db: null
-}
-
-db_manager.collection = {
-    devices: null,
-    rules: null
-}
-
-// Connect function
-db_manager.connect = (callback) => {
-    if (db_manager.database.db) {
-        callback(false);
-    } else {
-        mongo.connect(_url, _options, (err, client) => {
-            if (err) {
-                callback(err);
-            } else {
-                db_manager.database.db = client.db(_dbName);
-                db_manager.collection.devices = client.db(_dbName).collection("devices");
-                db_manager.collection.rules = client.db(_dbName).collection("rules");
-                callback(false);
-            }
+const DatabaseManager = {
+    start: (callback) => {
+        logger.info('START mongodb client');
+        mongoose.connect('mongodb://localhost:27017/home-hub', {
+            useNewUrlParser: true,
+        }).then(() => {
+            logger.debug('Connected to database server');
+            callback();
+        }).catch(err => {
+            logger.error(err.message);
         });
-    }
-}
+    },
 
-db_manager.getPrimaryKey = id => {
-    return ObjectId(id);
-}
+    getAllDevices: callback => DevicesDB.getAllDevices(callback),
+    getAllRules: callback => RulesDB.getAllRules(callback),
+    getAllGroups: callback => GroupsDB.getAllGroups(callback),
 
-db_manager.getDB = () => {
-    return db_manager.database.db
-}
+    // Device handlers
+    handleDeviceJoined: (eui64, endpoint, type) => DevicesDB.handleDeviceJoined(eui64, endpoint, type),
+    handleDeviceLeft: eui64 => DevicesDB.handleDeviceLeft(eui64),
+    handleDeviceUpdate: (eui64, params) => DevicesDB.handleDeviceUpdate(eui64, params),
+    handleDeviceRemove: eui64 => DevicesDB.handleDeviceRemove(eui64),
 
-db_manager.getCollection = collection => {
-    return db_manager.collection[collection];
-}
+    // Rule handlers
+    handleRuleAdd: () => RulesDB.handleRuleAdd(),
+    handleRuleRemove: () => RulesDB.handleRuleRemove(),
+    handleRuleEnable: () => RulesDB.handleRuleEnable(),
+    handleRuleActive: () => RulesDB.handleRuleActive(),
 
-// Export the module
-module.exports = db_manager;
+    // Group handlers
+    handleGroupAdd: () => GroupsDB.handleGroupAdd(),
+    handleGroupRemove: () => GroupsDB.handleGroupRemove(),
+    handleGroupEnable: () => GroupsDB.handleGroupEnable()
+};
+
+module.exports = DatabaseManager;

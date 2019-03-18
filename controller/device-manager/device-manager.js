@@ -24,7 +24,7 @@ class DeviceManager extends Bridge {
             callback();
         });
         this.bridgeConfig = {
-            username: '9C:13:12:45:F5:C3',
+            username: '9C:13:12:45:F7:C3',
             port: 56423,
             pincode: '031-45-154',
             category: Accessory.Categories.BRIDGE
@@ -50,8 +50,19 @@ class DeviceManager extends Bridge {
         }
     }
 
-    loadDeviceFromDB(deviceInfo) {
-        // TODO
+    loadDeviceFromDB(devices) {
+        for (let i in devices) {
+            let eui64 = devices[i].eui64;
+            logger.debug('endpoint size ' + devices[i].endpoints.length);
+            for (let k in devices[i].endpoints) {
+                if (devices[i].online) {
+                    let endpoint = devices[i].endpoints[k].endpoint;
+                    let type = devices[i].endpoints[k].type;
+                    if (endpoint !== undefined)
+                        this.handleDeviceJoined(eui64, endpoint, type);
+                }
+            }
+        }
     }
 
     removeDevice(eui64) {
@@ -80,6 +91,7 @@ class DeviceManager extends Bridge {
 
     handleDeviceStatus(value, eui64, endpoint) {
         if (this.getDevice(eui64) !== undefined) {
+            logger.debug('device found');
             this.getDevice(eui64).updateEndpointValue(value, endpoint);
         }
     }

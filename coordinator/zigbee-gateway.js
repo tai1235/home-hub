@@ -29,7 +29,7 @@ class ZigbeeGateway extends EventEmitter {
         this.eui64 = eui64;
         this.clientId = helpers.createRandomString(32);
         this.client = mqtt.connect({
-            host: '192.168.11.79',
+            host: 'localhost',
             port: 1883,
             clientId: this.clientId,
             protocol: 'mqtt'
