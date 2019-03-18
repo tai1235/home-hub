@@ -91,7 +91,6 @@ class DeviceManager extends Bridge {
 
     handleDeviceStatus(value, eui64, endpoint) {
         if (this.getDevice(eui64) !== undefined) {
-            logger.debug('device found');
             this.getDevice(eui64).updateEndpointValue(value, endpoint);
         }
     }

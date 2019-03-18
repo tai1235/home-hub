@@ -73,10 +73,11 @@ class ZigbeeGateway extends EventEmitter {
                     this.emit('device-left', message);
                 } break;
                 case SubscribeTopics.ZclResponse: {
-                    let params = {};
-                    params.eui64 = messageData.deviceEndpoint.eui64;
-                    params.endpoint = messageData.deviceEndpoint.endpoint;
-                    params.value = ZigbeeGateway._parseClusterValue(messageData.clusterId, messageData.commandData);
+                    let params = {
+                        eui64: messageData.deviceEndpoint.eui64,
+                        endpoint: messageData.deviceEndpoint.endpoint,
+                        value: ZigbeeGateway._parseClusterValue(messageData.clusterId, messageData.commandData)
+                    };
                     this.emit('device-response', params);
                 } break;
             }
@@ -185,9 +186,9 @@ class ZigbeeGateway extends EventEmitter {
 
     //TODO Taibeo Get command value from cluster ID and command data
      static _parseClusterValue(clusterId, commandData) {
-        if (commandData === undefined)
-            return;
         let value = {};
+        if (commandData === undefined)
+            return value;
         switch (clusterId) {
             // TODO Taibeo Switch theo cac case cuar Attribute duoc liet ke o tren
             case ZigbeeCluster.BASIC.ID: {
@@ -196,15 +197,15 @@ class ZigbeeGateway extends EventEmitter {
                         if(commandData.substr(8, 2) !== ZigbeeCluster.BASIC.Attribute.ZCL_MANUFACTURER_NAME_ATTRIBUTE_ID.type){
                             break;
                         }else{
-                            value.manufacturer = hex2string(commandData.substr(10, 8));
+                            value.manufacturer = ZigbeeGateway.hex2string(commandData.substr(10, 8));
                             logger.debug(value.manufacturer);
                         }
                     } break;
                     case ZigbeeCluster.BASIC.Attribute.ZCL_MODEL_IDENTIFIER_ATTRIBUTE_ID.ID:{
-                        if(commandData.subscribe(8, 2) !== ZigbeeCluster.BASIC.Attribute.ZCL_MODEL_IDENTIFIER_ATTRIBUTE_ID.type){
+                        if(commandData.substr(8, 2) !== ZigbeeCluster.BASIC.Attribute.ZCL_MODEL_IDENTIFIER_ATTRIBUTE_ID.type){
                             break;
                         }else{
-                            value.model = hex2string(commandData.substr(10,12));
+                            value.model = ZigbeeGateway.hex2string(commandData.substr(10,12));
                             logger.debug(value.model);
                         }
                     } break;
