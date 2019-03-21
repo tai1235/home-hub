@@ -6,28 +6,44 @@
  */
 
 // Container for all environments
-let environments = {};
-
-// Staging (default) environment
-environments.staging = {
-    hostName: 'http://e835f1e4.ngrok.io',
-    httpPort: 3000,
-    httpsPort: 3001,
-    envName: 'staging',
-    hashingSecret: 'alpaca',
-    logPath:  __dirname + '/log.txt',
-    gatewayId: '00B57FFFE51BF102'
-};
-
-// Production environment
-environments.production = {
-    hostName: 'http://e835f1e4.ngrok.io',
-    httpPort: 5000,
-    httpsPort: 5001,
-    envName: 'production',
-    hashingSecret: 'wolverine',
-    logPath: __dirname + '/log.txt',
-    gatewayId: '000B57FFFE572517'
+let environments = {
+    // Staging (default) environment
+    staging: {
+        envName: 'staging',
+        server: {
+            host: 'http://e835f1e4.ngrok.io',
+            authentication: {
+                key: '',
+            }
+        },
+        hashingSecret: 'alpaca',
+        logPath:  __dirname + '/log.txt',
+        gatewayId: '00B57FFFE51BF102',
+        cloudMQTT: {
+            host: 'm24.cloudmqtt.com',
+            port: 16032,
+            authentication: {
+                user: 'doantotnghiep',
+                password: '123456789'
+            }
+        },
+    },
+    // Production environment
+    production: {
+        envName: 'production',
+        hostName: 'http://e835f1e4.ngrok.io',
+        hashingSecret: 'wolverine',
+        logPath: __dirname + '/log.txt',
+        gatewayId: '000B57FFFE572517',
+        cloudMQTT: {
+            host: 'm24.cloudmqtt.com',
+            port: 16032,
+            authentication: {
+                user: 'bkxttvrf',
+                password: 'x1q_MUb27bLz'
+            }
+        }
+    }
 };
 
 // Determine which environment was passed as a command-line argument

@@ -1,7 +1,7 @@
 /**
  * Author: TaiNV
  * Date Created: 2019/02/17
- * Module: db-manager
+ * Module: database-manager
  * Description: Rule schema definition
  */
 

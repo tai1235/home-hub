@@ -54,6 +54,14 @@ class SwitchEndpoint extends Service.Switch {
                 .updateValue(value.on, undefined);
         }
     }
+
+    setValue(value) {
+        if (value.on !== undefined) {
+            logger.info('SET characteristic on of ' + this.name + ': ' + value.on);
+            this.status.on = value.on;
+            this.setValue(Characteristic.On, value.on);
+        }
+    }
 }
 
 class LightEndpoint extends Service.Lightbulb {

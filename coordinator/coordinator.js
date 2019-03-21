@@ -2,46 +2,52 @@
  * Author: TaiNV
  * Date Created: 2019/02/26
  * Module: device
- * Description: device implementation
+ * Description: Handle all events of the system
  */
 
 // Dependencies
 const ZigbeeGateway = require('./zigbee-gateway');
 const Logger = require('../libraries/system-log');
-const DeviceManager = require('../controller/device-manager/device-manager');
 const config = require('../config');
+const DeviceManager = require('../controller/device-manager/device-manager');
 const storage = require('node-persist');
-const DatabaseManager = require('../controller/db-manager/db-manager');
+const DatabaseManager = require('../controller/database-manager/database-manager');
+const ServerCommunicator = require('../coordinator/server-communicator');
 
 const logger = new Logger(__filename);
 
 class Coordinator {
     constructor() {
         this.zigbeeGateway = new ZigbeeGateway(config.gatewayId);
-        this.deviceManager = new DeviceManager()
+        this.deviceManager = new DeviceManager();
+        // this.serverCommunicator = new ServerCommunicator({
+        //     server: config.server,
+        //     cloudMQTT: config.cloudMQTT
+        // });
     }
 
+    // Device's events from zigbee gateway
     handleDeviceJoined() {
         this.zigbeeGateway.on('device-joined', params => {
+            logger.info(JSON.stringify({
+                eui64: params.eui64,
+                endpoint: params.endpoint,
+                type: params.type
+            }));
             // Create and store new device to cache
             this.deviceManager.handleDeviceJoined(params.eui64, params.endpoint, params.type);
-
             // Store device's data to DB
             DatabaseManager.handleDeviceJoined(params.eui64, params.endpoint, params.type);
-
             // Send request to server
         })
     }
 
     handleDeviceLeft() {
-        this.zigbeeGateway.on('device-left', message => {
-            // Parse parameter from message
-
+        this.zigbeeGateway.on('device-left', eui64 => {
             // Create and store new device to cache
-            // this.deviceManager.handleDeviceLeft(eui64);
-
+            this.deviceManager.handleDeviceLeft(eui64);
             // Store device's data to DB
-            DatabaseManager.handleDeviceLeft()
+            DatabaseManager.handleDeviceLeft(eui64)
 
             // Send request to server
         })
@@ -50,8 +56,10 @@ class Coordinator {
     handleDeviceStatus() {
         this.zigbeeGateway.on('device-response', params => {
             // Handle device status
-            logger.debug(params);
+            logger.debug(JSON.stringify(params));
             this.deviceManager.handleDeviceStatus(params.value, params.eui64, params.endpoint);
+            // Update reachable status of device to true
+            DatabaseManager.handleDeviceStatus(params.eui64);
 
             // Handle rule input
 
@@ -61,10 +69,19 @@ class Coordinator {
         })
     }
 
+    // Device's events from server
     handleDeviceRemove() {
         // Listen event from server
 
-        //
+        // Handle event
+        this.deviceManager.handleDeviceRemove(eui64)
+    }
+
+    handleDeviceControl() {
+        // Listen event from server
+
+        // Handle device control
+        this.deviceManager.handleDeviceControl(params.value, params.eui64, params.endpoint);
     }
 
     handleRuleAdd() {
@@ -131,23 +148,25 @@ class Coordinator {
     }
 
     start() {
-        // Initiate the zigbee gateway
-        this.zigbeeGateway.getConnectStatus(() => {
-            this.zigbeeGateway.process();
-        });
         // Initiate the database manager
         DatabaseManager.start(() => {
-            DatabaseManager.getAllDevices(devices => {
-                logger.debug(devices);
-                // Initiate the device manager
-                storage.initSync();
-                this.deviceManager.start();
-                this.deviceManager.loadDeviceFromDB(devices);
+            // Initiate the zigbee gateway
+            this.zigbeeGateway.start();
+            this.zigbeeGateway.onConnect(() => {
+                this.zigbeeGateway.process();
             });
+            // Initiate the device manager
+            DatabaseManager.getAllDevices(devices => {
+                storage.initSync();
+                this.deviceManager.loadDeviceFromDB(devices);
+                this.deviceManager.start();
+            });
+            // Initiate the rule manager
             // DatabaseManager.getAllRules(rules => {
             //     // Load all rule to cache
             //     logger.debug(rules);
             // });
+            // Initiate the group manager
             // DatabaseManager.getAllGroups(groups => {
             //     // Load all groups to cache (?)
             //     logger.debug(groups);
@@ -159,8 +178,9 @@ class Coordinator {
         // Handle device's event
         this.handleDeviceJoined();
         this.handleDeviceLeft();
-        this.handleDeviceStatus();
         this.handleDeviceRemove();
+        this.handleDeviceStatus();
+        this.handleDeviceControl();
         // Handle rule's event
         this.handleRuleAdd();
         this.handleRuleRemove();

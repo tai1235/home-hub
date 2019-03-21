@@ -1,7 +1,7 @@
 /**
  * Author: TaiNV
  * Date Created: 2019/02/17
- * Module: db-manager
+ * Module: database-manager
  * Description: Rule schema definition
  */
 
@@ -71,35 +71,10 @@ let RuleSchema = new mongoose.Schema({
                 }
             },
             repeat: {
-                type: {
-                    type: Number,
-                    required: true
-                },
-                data: {
-                    date: {
-                        type: String,
-                        default: '1111111',
-                        trim: true
-                    },
-                    aboutTime: {
-                        after: {
-                            type: Number,
-                            default: 1
-                        },
-                        day: {
-                            type: Number,
-                            default: date
-                        },
-                        month: {
-                            type: Number,
-                            default: month
-                        },
-                        year: {
-                            type: Number,
-                            default: year
-                        }
-                    }
-                }
+                date: [{
+                    type: String,
+                    trim: true
+                }],
             }
         }
     },

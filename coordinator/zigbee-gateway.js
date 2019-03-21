@@ -28,6 +28,9 @@ class ZigbeeGateway extends EventEmitter {
         super();
         this.eui64 = eui64;
         this.clientId = helpers.createRandomString(32);
+    }
+
+    start() {
         this.client = mqtt.connect({
             host: 'localhost',
             port: 1883,
@@ -36,7 +39,7 @@ class ZigbeeGateway extends EventEmitter {
         })
     }
 
-    getConnectStatus(callback) {
+    onConnect(callback) {
         logger.info('START mqtt client');
         this.client.on('connect', () => {
             logger.debug("Connected to broker");
@@ -70,7 +73,7 @@ class ZigbeeGateway extends EventEmitter {
                     this.emit('device-joined', params);
                 } break;
                 case SubscribeTopics.DeviceLeft: {
-                    this.emit('device-left', message);
+                    this.emit('device-left', messageData.eui64);
                 } break;
                 case SubscribeTopics.ZclResponse: {
                     let params = {
