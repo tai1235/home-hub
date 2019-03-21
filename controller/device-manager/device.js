@@ -96,9 +96,9 @@ class Device extends Accessory {
     }
 
     updateEndpointValue(value, endpoint) {
-        if (value.on === undefined && value.level === undefined)
-            return;
-        this.getEndpoint(endpoint).updateValue(value);
+        if (value.on !== undefined || value.level !== undefined)
+            if (this.getEndpoint(endpoint) !== undefined)
+                this.getEndpoint(endpoint).updateValue(value);
     }
 }
 

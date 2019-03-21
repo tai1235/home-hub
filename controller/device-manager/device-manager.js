@@ -17,7 +17,6 @@ let logger = new Logger(__filename);
 class DeviceManager extends Bridge {
     constructor() {
         super('Home Hub', uuid.generate('Home Hub'));
-        this.devices = [];
         this.on('identify', (paired, callback) => {
             if (paired)
                 logger.info('IDENTIFY homekit bridge');
@@ -38,39 +37,30 @@ class DeviceManager extends Bridge {
 
     addDevice(deviceToAdd) {
         logger.info('ADD device ' + deviceToAdd.eui64);
-        this.devices.push(deviceToAdd);
         this.addBridgedAccessory(deviceToAdd);
     }
 
     getDevice(eui64) {
-        for (let i in this.devices) {
-            if (this.devices[i].eui64 === eui64) {
-                return this.devices[i];
+        for (let i in this.bridgedAccessories) {
+            if (this.bridgedAccessories[i].eui64 === eui64) {
+                return this.bridgedAccessories[i];
             }
         }
     }
 
     loadDeviceFromDB(devices) {
-        for (let i in devices) {
-            let eui64 = devices[i].eui64;
-            logger.debug('endpoint size ' + devices[i].endpoints.length);
-            for (let k in devices[i].endpoints) {
-                if (devices[i].online) {
-                    let endpoint = devices[i].endpoints[k].endpoint;
-                    let type = devices[i].endpoints[k].type;
-                    if (endpoint !== undefined)
-                        this.handleDeviceJoined(eui64, endpoint, type);
-                }
-            }
+        for (let device of devices) {
+            if (device.online)
+                this.handleDeviceJoined(device.eui64, device.endpoint, device.type);
         }
     }
 
     removeDevice(eui64) {
         for (let i in this.bridgedAccessories) {
-            if (eui64 === this.devices[i].eui64) {
+            if (eui64 === this.bridgedAccessories[i].eui64) {
                 logger.info('REMOVE device ' + eui64);
-                this.removeBridgedAccessories(this.devices[i]);
-                this.devices.splice(i, 1);
+                this.removeBridgedAccessory(this.bridgedAccessories[i]);
+                this.bridgedAccessories.splice(i, 1);
             }
         }
     }

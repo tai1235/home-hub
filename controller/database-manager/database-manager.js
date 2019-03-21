@@ -24,6 +24,9 @@ const DatabaseManager = {
             callback();
         }).catch(err => {
             logger.error(err.message);
+            setTimeout(() => {
+                DatabaseManager.start(callback);
+            }, 5000);
         });
     },
 
@@ -34,8 +37,9 @@ const DatabaseManager = {
     // Device handlers
     handleDeviceJoined: (eui64, endpoint, type) => DevicesDB.handleDeviceJoined(eui64, endpoint, type),
     handleDeviceLeft: eui64 => DevicesDB.handleDeviceLeft(eui64),
-    handleDeviceUpdate: (eui64, params) => DevicesDB.handleDeviceUpdate(eui64, params),
+    // handleDeviceUpdate: (eui64, params) => DevicesDB.handleDeviceUpdate(eui64, params),
     handleDeviceRemove: eui64 => DevicesDB.handleDeviceRemove(eui64),
+    handleDeviceStatus: eui64 => DevicesDB.handleDeviceStatus(eui64),
 
     // Rule handlers
     handleRuleAdd: () => RulesDB.handleRuleAdd(),

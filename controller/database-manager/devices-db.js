@@ -68,7 +68,7 @@ const DevicesDB = {
         Devices.find({})
             .exec()
             .then(devices => callback(devices))
-            .catch(e => logger.error(e.message));
+            .catch(e => logger.error('71' + e.message));
     },
     handleDeviceJoined: (eui64, endpoint, type) => {
         Devices.find({ eui64: eui64 })
@@ -101,7 +101,7 @@ const DevicesDB = {
                     logger.info('UPDATE database successfully')
                 }
             })
-            .catch(e => logger.error(e.message));
+            .catch(e => logger.error('104' + e.message));
     },
     handleDeviceLeft: eui64 => {
         Devices.find({ eui64: eui64 })
@@ -125,7 +125,7 @@ const DevicesDB = {
                 if (result.n > 0 && result.ok)
                     logger.info('REMOVE device ' + eui64);
             })
-            .catch(e => logger.error(e.message));
+            .catch(e => logger.error('128' + e.message));
     },
     handleDeviceStatus: eui64 => {
         Devices.find({ eui64: eui64 })
@@ -141,7 +141,7 @@ const DevicesDB = {
                 logger.debug(devices);
                 logger.info('ONLINE device ' + eui64);
             })
-            .catch(e => logger.error(e.message));
+            .catch(e => logger.error('144: ' +e.message));
     }
 };
 

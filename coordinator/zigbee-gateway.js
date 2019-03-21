@@ -9,7 +9,6 @@
 const EventEmitter = require('events');
 const Logger = require('../libraries/system-log');
 const mqtt = require('mqtt');
-const helpers = require('../libraries/helpers');
 const { ZigbeeCommand, ZigbeeCluster } = require('./zigbee');
 
 const logger = new Logger(__filename);
@@ -27,16 +26,14 @@ class ZigbeeGateway extends EventEmitter {
     constructor(eui64) {
         super();
         this.eui64 = eui64;
-        this.clientId = helpers.createRandomString(32);
     }
 
     start() {
         this.client = mqtt.connect({
             host: 'localhost',
             port: 1883,
-            clientId: this.clientId,
             protocol: 'mqtt'
-        })
+        });
     }
 
     onConnect(callback) {

@@ -15,8 +15,9 @@ const EndpointType = {
     LIGHT: '0x0103',
     DOORLOCK: '0x000A',
     THERMOSTAT: '0x0301',
-
 };
+
+zigbeePublisher.start();
 
 class SwitchEndpoint extends Service.Switch {
     constructor(eui64, endpoint) {
@@ -58,8 +59,8 @@ class SwitchEndpoint extends Service.Switch {
     setValue(value) {
         if (value.on !== undefined) {
             logger.info('SET characteristic on of ' + this.name + ': ' + value.on);
-            this.status.on = value.on;
-            this.setValue(Characteristic.On, value.on);
+            this.getCharacteristic(Characteristic.On)
+                .setValue(value.on);
         }
     }
 }
@@ -122,6 +123,19 @@ class LightEndpoint extends Service.Lightbulb {
             this.status.brightness = value.level;
             this.getCharacteristic(Characteristic.Brightness)
                 .updateValue(value.level, undefined);
+        }
+    }
+
+    setValue(value) {
+        if (value.on !== undefined) {
+            logger.info('SET characteristic on of ' + this.name + ': ' + value.on);
+            this.getCharacteristic(Characteristic.On)
+                .setValue(value.on);
+        }
+        if (value.level !== undefined) {
+            logger.info('SET characteristic on of ' + this.name + ': ' + value.on);
+            this.getCharacteristic(Characteristic.Brightness)
+                .setValue(value.level);
         }
     }
 }

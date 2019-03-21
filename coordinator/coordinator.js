@@ -74,14 +74,14 @@ class Coordinator {
         // Listen event from server
 
         // Handle event
-        this.deviceManager.handleDeviceRemove(eui64)
+        // this.deviceManager.handleDeviceRemove(eui64)
     }
 
     handleDeviceControl() {
         // Listen event from server
 
         // Handle device control
-        this.deviceManager.handleDeviceControl(params.value, params.eui64, params.endpoint);
+        // this.deviceManager.handleDeviceControl(params.value, params.eui64, params.endpoint);
     }
 
     handleRuleAdd() {
