@@ -20,6 +20,7 @@ class Coordinator {
     constructor() {
         this.zigbeeGateway = new ZigbeeGateway(config.gatewayId);
         this.deviceManager = new DeviceManager();
+        this.databaseManager = new DatabaseManager();
         // this.serverCommunicator = new ServerCommunicator({
         //     server: config.server,
         //     cloudMQTT: config.cloudMQTT
@@ -27,8 +28,8 @@ class Coordinator {
     }
 
     // Device's events from zigbee gateway
-    handleDeviceJoined() {
-        this.zigbeeGateway.on('device-joined', params => {
+    handleZigbeeDeviceJoined() {
+        this.zigbeeGateway.on('zigbee-device-joined', params => {
             logger.info(JSON.stringify({
                 eui64: params.eui64,
                 endpoint: params.endpoint,
@@ -37,29 +38,26 @@ class Coordinator {
             // Create and store new device to cache
             this.deviceManager.handleDeviceJoined(params.eui64, params.endpoint, params.type);
             // Store device's data to DB
-            DatabaseManager.handleDeviceJoined(params.eui64, params.endpoint, params.type);
-            // Send request to server
+            this.databaseManager.handleDeviceJoined(params.eui64, params.endpoint, params.type);
         })
     }
 
-    handleDeviceLeft() {
-        this.zigbeeGateway.on('device-left', eui64 => {
+    handleZigbeeDeviceLeft() {
+        this.zigbeeGateway.on('zigbee-device-left', eui64 => {
             // Create and store new device to cache
             this.deviceManager.handleDeviceLeft(eui64);
             // Store device's data to DB
-            DatabaseManager.handleDeviceLeft(eui64)
-
-            // Send request to server
+            this.databaseManager.handleDeviceLeft(eui64);
         })
     }
 
-    handleDeviceStatus() {
-        this.zigbeeGateway.on('device-response', params => {
+    handleZigbeeDeviceStatus() {
+        this.zigbeeGateway.on('zigbee-device-response', params => {
             // Handle device status
             logger.debug(JSON.stringify(params));
             this.deviceManager.handleDeviceStatus(params.value, params.eui64, params.endpoint);
             // Update reachable status of device to true
-            DatabaseManager.handleDeviceStatus(params.eui64);
+            this.databaseManager.handleDeviceStatus(params.eui64);
 
             // Handle rule input
 
@@ -69,127 +67,161 @@ class Coordinator {
         })
     }
 
+    handleDatabaseDeviceAdded() {
+        this.databaseManager.on('database-device-added', params => {
+            // TODO Send response to server
+        })
+    }
+
+    handleDatabaseDeviceOffline() {
+        this.databaseManager.on('database-device-offline', params => {
+            // TODO Send response to server
+        })
+    }
+
+    handleDatabaseDeviceOnline() {
+        this.databaseManager.on('database-device-online', params => {
+            // TODO Send response to server
+        })
+    }
+
+    handleDatabaseDeviceRemoved() {
+        this.databaseManager.on('database-device-removed', params => {
+            // TODO Send response to server
+        })
+    }
+
     // Device's events from server
-    handleDeviceRemove() {
+    handleServerDeviceRemove() {
         // Listen event from server
 
         // Handle event
         // this.deviceManager.handleDeviceRemove(eui64)
     }
 
-    handleDeviceControl() {
+    handleServerDeviceControl() {
         // Listen event from server
 
         // Handle device control
         // this.deviceManager.handleDeviceControl(params.value, params.eui64, params.endpoint);
     }
 
-    handleRuleAdd() {
+    handleServerRuleAdd() {
         // Handle rule add
 
         // Store rule's data
-        DatabaseManager.handleRuleAdd();
+        this.databaseManager.handleRuleAdd();
 
         // Send response to server
     }
 
-    handleRuleRemove() {
+    handleServerRuleRemove() {
         // Handle rule remove
 
         // Update database
-        DatabaseManager.handleRuleRemove();
+        this.databaseManager.handleRuleRemove();
 
         // Send response to server
     }
 
-    handleRuleActive() {
+    handleServerRuleActive() {
         // Handle rule active
 
         // Update database
-        DatabaseManager.handleRuleActive()
+        this.databaseManager.handleRuleActive()
 
         // Send response to server
     }
 
-    handleRuleEnable() {
+    handleServerRuleEnable() {
         // Handle rule enable
 
         // Update database
-        DatabaseManager.handleRuleEnable()
+        this.databaseManager.handleRuleEnable()
 
         // Send response to server
     }
 
-    handleGroupAdd() {
+    handleServerGroupAdd() {
         // Handle group add
 
         // Update database
-        DatabaseManager.handleGroupAdd()
+        this.databaseManager.handleGroupAdd()
 
         // Send response to server
     }
 
-    handleGroupRemove() {
+    handleServerGroupRemove() {
         // Handle group remove
 
         // Update database
-        DatabaseManager.handleGroupRemove()
+        this.databaseManager.handleGroupRemove()
 
         // Send response to server
     }
 
-    handleGroupEnable() {
+    handleServerGroupEnable() {
         // Handle group enable
 
         // Update database
-        DatabaseManager.handleGroupEnable()
+        this.databaseManager.handleGroupEnable()
 
         // Send response to server
     }
 
     start() {
-        // Initiate the database manager
-        DatabaseManager.start(() => {
-            // Initiate the zigbee gateway
-            this.zigbeeGateway.start();
-            this.zigbeeGateway.onConnect(() => {
-                this.zigbeeGateway.process();
+        try {
+            // Initiate the database manager
+            this.databaseManager.start(() => {
+                // Initiate the zigbee gateway
+                this.zigbeeGateway.start();
+                this.zigbeeGateway.onConnect(() => {
+                    this.zigbeeGateway.process();
+                });
+                // Initiate the device manager
+                this.databaseManager.getAllDevices((e, devices) => {
+                    if (e) throw e;
+                    storage.initSync();
+                    this.deviceManager.loadDeviceFromDB(devices);
+                    this.deviceManager.start();
+                });
+                // Initiate the rule manager
+                // DatabaseManager.getAllRules(rules => {
+                //     // Load all rule to cache
+                //     logger.debug(rules);
+                // });
+                // Initiate the group manager
+                // DatabaseManager.getAllGroups(groups => {
+                //     // Load all groups to cache (?)
+                //     logger.debug(groups);
+                // });
             });
-            // Initiate the device manager
-            DatabaseManager.getAllDevices(devices => {
-                storage.initSync();
-                this.deviceManager.loadDeviceFromDB(devices);
-                this.deviceManager.start();
-            });
-            // Initiate the rule manager
-            // DatabaseManager.getAllRules(rules => {
-            //     // Load all rule to cache
-            //     logger.debug(rules);
-            // });
-            // Initiate the group manager
-            // DatabaseManager.getAllGroups(groups => {
-            //     // Load all groups to cache (?)
-            //     logger.debug(groups);
-            // });
-        });
+        } catch (e) {
+            logger.error(e.message);
+        }
+
     }
 
     process() {
-        // Handle device's event
-        this.handleDeviceJoined();
-        this.handleDeviceLeft();
-        this.handleDeviceRemove();
-        this.handleDeviceStatus();
-        this.handleDeviceControl();
-        // Handle rule's event
-        this.handleRuleAdd();
-        this.handleRuleRemove();
-        this.handleRuleEnable();
-        this.handleRuleActive();
-        // Handle group's event
-        this.handleGroupAdd();
-        this.handleGroupRemove();
-        this.handleGroupEnable();
+        // Handle events from Zigbee gateway
+        this.handleZigbeeDeviceJoined();
+        this.handleZigbeeDeviceLeft();
+        this.handleZigbeeDeviceStatus();
+        // Handle events from Database
+        this.handleDatabaseDeviceAdded();
+        this.handleDatabaseDeviceOffline();
+        this.handleDatabaseDeviceOnline();
+        this.handleDatabaseDeviceRemoved();
+        // Handle events from Server
+        this.handleServerDeviceRemove();
+        this.handleServerDeviceControl();
+        this.handleServerRuleAdd();
+        this.handleServerRuleRemove();
+        this.handleServerRuleEnable();
+        this.handleServerRuleActive();
+        this.handleServerGroupAdd();
+        this.handleServerGroupRemove();
+        this.handleServerGroupEnable();
     }
 }
 

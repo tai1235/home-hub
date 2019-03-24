@@ -67,10 +67,10 @@ class ZigbeeGateway extends EventEmitter {
                         eui64: messageData.deviceEndpoint.eui64,
                         endpoint: messageData.deviceEndpoint.endpoint
                     };
-                    this.emit('device-joined', params);
+                    this.emit('zigbee-device-joined', params);
                 } break;
                 case SubscribeTopics.DeviceLeft: {
-                    this.emit('device-left', messageData.eui64);
+                    this.emit('zigbee-device-left', messageData.eui64);
                 } break;
                 case SubscribeTopics.ZclResponse: {
                     let params = {
@@ -78,7 +78,7 @@ class ZigbeeGateway extends EventEmitter {
                         endpoint: messageData.deviceEndpoint.endpoint,
                         value: ZigbeeGateway._parseClusterValue(messageData.clusterId, messageData.commandData)
                     };
-                    this.emit('device-response', params);
+                    this.emit('zigbee-device-response', params);
                 } break;
             }
         })

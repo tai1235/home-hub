@@ -23,7 +23,7 @@ let environments = {
             host: 'm24.cloudmqtt.com',
             port: 16032,
             authentication: {
-                user: 'doantotnghiep',
+                username: 'doantotnghiep',
                 password: '123456789'
             }
         },
@@ -39,7 +39,7 @@ let environments = {
             host: 'm24.cloudmqtt.com',
             port: 16032,
             authentication: {
-                user: 'bkxttvrf',
+                username: 'bkxttvrf',
                 password: 'x1q_MUb27bLz'
             }
         }

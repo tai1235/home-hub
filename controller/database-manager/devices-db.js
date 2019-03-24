@@ -8,6 +8,7 @@
 // Dependencies
 let mongoose = require('mongoose');
 let Logger = require('../../libraries/system-log');
+let Versions = require('./versions');
 
 let logger = new Logger(__filename);
 
@@ -28,8 +29,7 @@ let DeviceSchema = new mongoose.Schema({
         },
         manufacturer: {
             type: String,
-            trim: true,
-            default: 'TTC'
+            trim: true
         },
         model: {
             type: String,
@@ -61,22 +61,28 @@ let DeviceSchema = new mongoose.Schema({
     }
 });
 
-const Devices = new mongoose.model('Devices', DeviceSchema);
+class Devices  {
+    constructor() {
+        this.devices = new mongoose.model('Devices', DeviceSchema);
+    }
 
-const DevicesDB = {
-    getAllDevices: callback => {
-        Devices.find({})
+    getAllDevices(callback) {
+        this.devices.find({})
             .exec()
-            .then(devices => callback(devices))
-            .catch(e => logger.error('71' + e.message));
-    },
-    handleDeviceJoined: (eui64, endpoint, type) => {
-        Devices.find({ eui64: eui64 })
+            .then(devices => callback(false, devices))
+            .catch(e => {
+                logger.error(e.message);
+                callback(e)
+            });
+    }
+
+    handleDeviceJoined(eui64, endpoint, type, callback) {
+        this.devices.find({ eui64: eui64 })
             .exec()
             .then(devices => {
                 if (devices === null) {
                     logger.info('ADD endpoint ' + eui64 + '_' + endpoint);
-                    let newDevice = new Devices({ eui64, endpoint, type });
+                    let newDevice = new this.devices({ eui64, endpoint, type });
                     return newDevice.save();
                 } else {
                     for (let device of devices) {
@@ -91,59 +97,94 @@ const DevicesDB = {
                         }
                     }
                     logger.info('ADD endpoint ' + eui64 + '_' + endpoint);
-                    let newDevice = new Devices({ eui64, endpoint, type });
+                    let newDevice = new this.devices({ eui64, endpoint, type });
                     return newDevice.save();
                 }
             })
             .then(device => {
                 if (device) {
                     logger.debug(device);
-                    logger.info('UPDATE database successfully')
+                    logger.info('UPDATE database successfully');
+                    Versions.update('devices');
+                    let version = Versions.get('devices');
+                    callback(false, { version, data: device });
                 }
             })
-            .catch(e => logger.error('104' + e.message));
-    },
-    handleDeviceLeft: eui64 => {
-        Devices.find({ eui64: eui64 })
+            .catch(e => {
+                logger.error('104: ' + e.message);
+                callback(e);
+            });
+    }
+
+    handleDeviceLeft(eui64, callback) {
+        this.devices.find({ eui64: eui64 })
             .exec()
             .then(devices => {
                 for (let device of devices) {
                     device.online = false;
                 }
-                return Devices.create(devices);
+                return this.devices.create(devices);
             })
             .then(devices => {
-                logger.debug(devices);
-                logger.info('OFFLINE device ' + eui64);
+                if (devices) {
+                    logger.debug(devices);
+                    logger.info('OFFLINE device ' + eui64);
+                    Versions.update('devices');
+                    let version = Versions.get('devices');
+                    callback(false, { version, data: devices });
+                }
             })
-            .catch()
-    },
-    handleDeviceRemove: eui64 => {
-        Devices.remove({ eui64: eui64 })
+            .catch(e => {
+                logger.error(e.message);
+                callback(e);
+            });
+    }
+
+    handleDeviceRemove(eui64, callback) {
+        this.devices.remove({ eui64: eui64 })
             .exec()
             .then(result => {
-                if (result.n > 0 && result.ok)
+                if (result.n > 0 && result.ok) {
                     logger.info('REMOVE device ' + eui64);
+                    Versions.update('devices');
+                    let version = Versions.get('devices');
+                    callback(false, version);
+                }
             })
-            .catch(e => logger.error('128' + e.message));
-    },
-    handleDeviceStatus: eui64 => {
-        Devices.find({ eui64: eui64 })
+            .catch(e => {
+                logger.error(e.message);
+                callback(e);
+            });
+    }
+
+    handleDeviceStatus(eui64, callback) {
+        this.devices.find({ eui64: eui64 })
             .exec()
             .then(devices => {
+                let updated = false;
                 for (let device of devices) {
-                    if (!device.online)
+                    if (!device.online) {
                         device.online = true;
+                        updated = true;
+                    }
                 }
-                return Devices.create(devices);
+                if (updated)
+                    return this.devices.create(devices);
             })
             .then(devices => {
-                logger.debug(devices);
-                logger.info('ONLINE device ' + eui64);
+                if (devices) {
+                    logger.info('ONLINE device ' + eui64);
+                    Versions.update('devices');
+                    let version = Versions.get('devices');
+                    callback(false, { version, data: devices });
+                }
             })
-            .catch(e => logger.error('144: ' +e.message));
+            .catch(e => {
+                logger.error('144: ' + e.message);
+                callback(e);
+            });
     }
-};
+}
 
-module.exports = DevicesDB;
+module.exports = Devices;
 

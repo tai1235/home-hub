@@ -7,15 +7,23 @@
 
 // Dependencies
 let mongoose = require('mongoose');
-let DevicesDB = require('./devices-db');
-let RulesDB = require('./rules-db');
-let GroupsDB = require('./groups-db');
+let EventEmitter = require('events');
+let Devices = require('./devices-db');
+let Rules = require('./rules-db');
+let Groups = require('./groups-db');
 const Logger = require('../../libraries/system-log');
 
 let logger = new Logger(__filename);
 
-const DatabaseManager = {
-    start: (callback) => {
+class DatabaseManager extends EventEmitter {
+    constructor() {
+        super();
+        this.devices = new Devices();
+        this.rules = new Rules();
+        this.groups = new Groups();
+    }
+
+    start(callback) {
         logger.info('START mongodb client');
         mongoose.connect('mongodb://localhost:27017/home-hub', {
             useNewUrlParser: true,
@@ -25,32 +33,70 @@ const DatabaseManager = {
         }).catch(err => {
             logger.error(err.message);
             setTimeout(() => {
-                DatabaseManager.start(callback);
+                this.start(callback);
             }, 5000);
         });
-    },
+    }
 
-    getAllDevices: callback => DevicesDB.getAllDevices(callback),
-    getAllRules: callback => RulesDB.getAllRules(callback),
-    getAllGroups: callback => GroupsDB.getAllGroups(callback),
+    getAllDevices(callback) {
+        this.devices.getAllDevices(callback)
+    }
+    getAllRules(callback) {
+        this.rules.getAllRules(callback)
+    }
+    getAllGroups(callback) {
+        this.groups.getAllGroups(callback)
+    }
 
     // Device handlers
-    handleDeviceJoined: (eui64, endpoint, type) => DevicesDB.handleDeviceJoined(eui64, endpoint, type),
-    handleDeviceLeft: eui64 => DevicesDB.handleDeviceLeft(eui64),
-    // handleDeviceUpdate: (eui64, params) => DevicesDB.handleDeviceUpdate(eui64, params),
-    handleDeviceRemove: eui64 => DevicesDB.handleDeviceRemove(eui64),
-    handleDeviceStatus: eui64 => DevicesDB.handleDeviceStatus(eui64),
+    handleDeviceJoined(eui64, endpoint, type) {
+        this.devices.handleDeviceJoined(eui64, endpoint, type, (e, params) => {
+            if (!e) this.emit('database-device-added', params);
+        });
+    }
+    handleDeviceLeft(eui64) {
+        this.devices.handleDeviceLeft(eui64, (e, params) => {
+            if (!e) this.emit('database-device-offline', params);
+        })
+    }
+    // handleDeviceUpdate(eui64, params) {
+    //     this.devices.handleDeviceUpdate(eui64, params)
+    // }
+    handleDeviceRemove(eui64) {
+        this.devices.handleDeviceRemove(eui64, (e, params) => {
+            if (!e) this.emit('database-device-removed', params);
+        })
+    }
+    handleDeviceStatus(eui64) {
+        this.devices.handleDeviceStatus(eui64, (e, params) => {
+            if (!e) this.emit('database-device-online', params);
+        })
+    }
 
     // Rule handlers
-    handleRuleAdd: () => RulesDB.handleRuleAdd(),
-    handleRuleRemove: () => RulesDB.handleRuleRemove(),
-    handleRuleEnable: () => RulesDB.handleRuleEnable(),
-    handleRuleActive: () => RulesDB.handleRuleActive(),
+    handleRuleAdd() {
+        this.rules.handleRuleAdd();
+    }
+    handleRuleRemove() {
+        this.rules.handleRuleRemove()
+    }
+    handleRuleEnable() {
+        this.rules.handleRuleEnable()
+    }
+    handleRuleActive() {
+        this.rules.handleRuleActive()
+    }
 
     // Group handlers
-    handleGroupAdd: () => GroupsDB.handleGroupAdd(),
-    handleGroupRemove: () => GroupsDB.handleGroupRemove(),
-    handleGroupEnable: () => GroupsDB.handleGroupEnable()
-};
+    handleGroupAdd() {
+        this.groups.handleGroupAdd()
+    }
+    handleGroupRemove() {
+        this.groups.handleGroupRemove()
+    }
+    handleGroupEnable() {
+        this.groups.handleGroupEnable()
+    }
+}
 
 module.exports = DatabaseManager;

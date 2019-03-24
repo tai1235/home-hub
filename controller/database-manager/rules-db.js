@@ -7,14 +7,10 @@
 
 // Dependencies
 let mongoose = require('mongoose');
+let EventEmitter = require('events');
 let Logger = require('../../libraries/system-log');
 
 let logger = new Logger(__filename);
-
-let today = new Date();
-let date = String(today.getDate()).padStart(2, '0');
-let month = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-let year = today.getFullYear();
 
 let RuleSchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
@@ -108,23 +104,33 @@ let RuleSchema = new mongoose.Schema({
     },
 });
 
-const Rules = new mongoose.model('Rules', RuleSchema);
+class Rules extends EventEmitter {
+    constructor() {
+        super();
+        this.rules = new mongoose.model('Rules', RuleSchema)
+    }
 
-const RulesDB = {
-    addRule: () => {},
-    removeRule: () => {},
-    enableRule: () => {},
-    activeRule: () => {},
-    getAllRules: callback => {
-        Rules.find({})
+    getAllRules(callback) {
+        this.rules.find({})
             .exec()
             .then(rules => callback(rules))
             .catch(err => logger.error(err.message));
-    },
-    handleRuleAdd: () => RulesDB.addRule(),
-    handleRuleRemove: () => RulesDB.removeRule(),
-    handleRuleEnable: () => RulesDB.enableRule(),
-    handleRuleActive: () => RulesDB.activeRule()
-};
+    }
+    handleRuleAdd() {
 
-module.exports = RulesDB;
+    }
+
+    handleRuleRemove() {
+
+    }
+
+    handleRuleEnable() {
+
+    }
+
+    handleRuleActive() {
+
+    }
+}
+
+module.exports = Rules;

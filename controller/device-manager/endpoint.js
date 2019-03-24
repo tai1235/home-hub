@@ -103,7 +103,7 @@ class LightEndpoint extends Service.Lightbulb {
             })
             .on('get', callback => {
                 logger.info('GET characteristic brightness of ' + this.name + ': ' + this.status.brightness);
-                callback(this.status.brightness);
+                callback(null, this.status.brightness);
             })
     }
 

@@ -36,21 +36,29 @@ let GroupSchema = new mongoose.Schema({
     },
 });
 
-const Groups = new mongoose.model('Groups', GroupSchema);
+class Groups {
+    constructor() {
+        this.groups = new mongoose.model('Groups', GroupSchema)
+    }
 
-const GroupsDB = {
-    addGroup: () => {},
-    removeGroup: () => {},
-    enableGroup: () => {},
-    getAllGroups: callback => {
-        Groups.find({})
+    getAllGroups(callback) {
+        this.groups.find({})
             .exec()
-            .then(groups => callback(groups))
-            .catch(err => logger.error(err.message));
-    },
-    handleGroupAdd: () => GroupsDB.addGroup(),
-    handleGroupRemove: () => GroupsDB.removeGroup(),
-    handleGroupEnable: () => GroupsDB.enableGroup()
-};
+            .then(groups => callback(false, groups))
+            .catch(e => {
+                logger.error(e.message);
+                callback(e);
+            });
+    }
+    handleGroupAdd() {
 
-module.exports = GroupsDB;
+    }
+    handleGroupRemove() {
+
+    }
+    handleGroupEnable() {
+
+    }
+}
+
+module.exports = Groups;
