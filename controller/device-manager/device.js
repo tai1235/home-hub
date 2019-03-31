@@ -69,6 +69,9 @@ class Device extends Accessory {
     }
 
     addEndpoint(endpoint, type) {
+        if (this.getEndpoint(endpoint) !== undefined) {
+            return;
+        }
         logger.info('ADD endpoint ' + this.getEndpointName(endpoint));
         switch (type) {
             case EndpointType.SWITCH: {
@@ -99,6 +102,12 @@ class Device extends Accessory {
         if (value.on !== undefined || value.level !== undefined)
             if (this.getEndpoint(endpoint) !== undefined)
                 this.getEndpoint(endpoint).updateValue(value);
+    }
+
+    setEndpointValue(value, endpoint) {
+        if (value.on !== undefined || value.level !== undefined)
+                if (this.getEndpoint(endpoint) !== undefined)
+                    this.getEndpoint(endpoint).setValue(value);
     }
 }
 

@@ -30,7 +30,7 @@ class ZigbeeGateway extends EventEmitter {
 
     start() {
         this.client = mqtt.connect({
-            host: 'localhost',
+            host: '172.20.10.2',
             port: 1883,
             protocol: 'mqtt'
         });

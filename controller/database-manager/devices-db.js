@@ -71,7 +71,7 @@ class Devices  {
             .exec()
             .then(devices => callback(false, devices))
             .catch(e => {
-                logger.error(e.message);
+                logger.error('GetAllDevices: ' + e.message);
                 callback(e)
             });
     }
@@ -111,7 +111,7 @@ class Devices  {
                 }
             })
             .catch(e => {
-                logger.error('104: ' + e.message);
+                logger.error('HandleDeviceJoined: ' + e.message);
                 callback(e);
             });
     }
@@ -135,7 +135,7 @@ class Devices  {
                 }
             })
             .catch(e => {
-                logger.error(e.message);
+                logger.error('HandleDeviceLeft: ' + e.message);
                 callback(e);
             });
     }
@@ -152,7 +152,7 @@ class Devices  {
                 }
             })
             .catch(e => {
-                logger.error(e.message);
+                logger.error('HandleDeviceRemove: ' + e.message);
                 callback(e);
             });
     }
@@ -180,7 +180,7 @@ class Devices  {
                 }
             })
             .catch(e => {
-                logger.error('144: ' + e.message);
+                logger.error('HandleDeviceStatus: ' + e.message);
                 callback(e);
             });
     }
