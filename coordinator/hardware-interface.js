@@ -58,8 +58,8 @@ class HardwareInterface extends EventEmitter {
 
     process() {
         this.button.on('changed', value => {
-            this.emit('hardware-button-push');
             if (value === '0') {
+                this.emit('hardware-button-push');
                 this.buttonTimer = setInterval(() => {
                     ++this.buttonTimeCount;
                     if (this.buttonTimeCount === 3) {
