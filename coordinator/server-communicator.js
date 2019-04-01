@@ -36,12 +36,12 @@ class ServerCommunicator extends EventEmitter {
         const payloadString = JSON.stringify(payload);
 
         const requestDetail = {
-            'protocol': 'http:',
-            'hostname': this.serverOpts.host,
-            'method': 'POST',
-            'path': '/v1/charges',
-            'auth': this.serverOpts.authentication.key,
-            'headers': {
+            protocol: 'http:',
+            hostname: this.serverOpts.host,
+            method: 'POST',
+            path: '/v1/charges',
+            auth: this.serverOpts.authentication.key,
+            headers: {
                 'Content-Type': 'application/json',
                 'Content-Length': Buffer.byteLength(payloadString)
             }
@@ -101,61 +101,90 @@ class ServerCommunicator extends EventEmitter {
 
     _handleDeviceCommand(topic, command) {
         switch (topic) {
-            case 'info': {
-                this.emit('server-device-info', params);
-            } break;
-            case 'config': {
-                if (command.type === 'add') {
-                    this.emit('server-device-search', command.data);
-                } else if (command.type === 'remove') {
-                    this.emit('server-device-remove', command.data);
-                } else if (command.type === 'update') {
-                    this.emit('server-device-update', command.data);
+            case 'requests': {
+                switch (command.type) {
+                    case 'info': {
+                        this.emit('server-device-info', command.data);
+                    } break;
+                    case 'add': {
+                        this.emit('server-device-search', command.data);
+                    } break;
+                    case 'update': {
+                        this.emit('server-device-remove', command.data);
+                    } break;
+                    case 'remove': {
+                        this.emit('server-device-update', command.data);
+                    } break;
+                    case 'control': {
+                        this.emit('server-device-control', command.data);
+                    } break;
                 }
             } break;
-            case 'control': {
-                this.emit('server-device-control', params);
+            case 'responses': {
+
             } break;
         }
     }
 
-    _handleRuleCommand(topic, params) {
+    _handleRuleCommand(topic, command) {
         switch (topic) {
-            case 'add': {
-                this.emit('server-rule-search', params);
+            case 'requests': {
+                switch (command.type) {
+                    case 'add': {
+                        this.emit('server-rule-search', command.data);
+                    } break;
+                    case 'info': {
+                        this.emit('server-rule-info', command.data);
+                    } break;
+                    case 'config': {
+                        this.emit('server-rule-update', command.data);
+                    } break;
+                    case 'remove': {
+                        this.emit('server-rule-remove', command.data);
+                    } break;
+                    case 'control': {
+                        this.emit('server-rule-control', command.data);
+                    } break;
+                    default: {
+                        logger.warn('Invalid request from server');
+                    }
+                }
             } break;
-            case 'info': {
-                this.emit('server-rule-info', params);
-            } break;
-            case 'config': {
-                this.emit('server-rule-update', params);
-            } break;
-            case 'remove': {
-                this.emit('server-rule-remove', params);
-            } break;
-            case 'control': {
-                this.emit('server-rule-control', params);
+            case 'responses': {
+
             } break;
         }
     }
-    _handleGroupCommand(topic, params) {
+    _handleGroupCommand(topic, command) {
         switch (topic) {
-            case 'add': {
-                this.emit('server-group-search', params);
+            case 'requests': {
+                switch (command.type) {
+                    case 'add': {
+                        this.emit('server-group-search', command.data);
+                    } break;
+                    case 'info': {
+                        this.emit('server-group-info', command.data);
+                    } break;
+                    case 'config': {
+                        this.emit('server-group-update', command.data);
+                    } break;
+                    case 'remove': {
+                        this.emit('server-group-remove', command.data);
+                    } break;
+                    case 'control': {
+                        this.emit('server-group-control', command.data);
+                    } break;
+                }
             } break;
-            case 'info': {
-                this.emit('server-group-info', params);
-            } break;
-            case 'config': {
-                this.emit('server-group-update', params);
-            } break;
-            case 'remove': {
-                this.emit('server-group-remove', params);
-            } break;
-            case 'control': {
-                this.emit('server-group-control', params);
+            case 'responses': {
+
             } break;
         }
+    }
+
+    response(module, message) {
+        let topic = this.mqttOpts.clientId + '/' + module + '/responses';
+        this.client.publish(topic, message);
     }
 }
 

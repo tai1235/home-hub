@@ -1,7 +1,7 @@
 /**
  * Author: TaiNV
  * Date Modified: 2019/01/19
- * Module: system-log
+ * Module: config
  * Description: configuration for the project
  */
 
@@ -27,14 +27,21 @@ let environments = {
                 password: 'x1q_MUb27bLz'
             }
         },
+        runningMode: 0,
+        resourceID: 'home-hub_1_1'
     },
     // Production environment
     production: {
         envName: 'production',
-        hostName: 'http://e835f1e4.ngrok.io',
-        hashingSecret: 'wolverine',
-        logPath: __dirname + '/log.txt',
-        gatewayId: '000B57FFFE572517',
+        server: {
+            host: 'http://e835f1e4.ngrok.io',
+            authentication: {
+                key: '',
+            }
+        },
+        hashingSecret: 'alpaca',
+        logPath:  __dirname + '/log.txt',
+        gatewayId: '00B57FFFE51BF102',
         cloudMQTT: {
             host: 'm24.cloudmqtt.com',
             port: 16032,
@@ -42,7 +49,9 @@ let environments = {
                 username: 'bkxttvrf',
                 password: 'x1q_MUb27bLz'
             }
-        }
+        },
+        runningMode: 0,
+        resourceID: 'home-hub_1_1'
     }
 };
 

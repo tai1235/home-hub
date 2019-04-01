@@ -1,3 +1,10 @@
+/**
+ * Author: TaiNV
+ * Date Modified: 2019/03/31
+ * Module: endpoint
+ * Description: all endpoint's types declarations and interfaces
+ */
+
 // Dependencies
 let Service = require('../../hap').Service;
 let Characteristic = require('../../hap').Characteristic;
