@@ -50,6 +50,7 @@ class HardwareInterface extends EventEmitter {
         });
         this.on('hardware-button-release', time => {
             logger.debug('button release after ' + time);
+            this.buttonTimeCount = 0;
             this.blueLED.write(0);
             this.redLED.write(0);
         });
