@@ -15,11 +15,9 @@ const logger = new Logger(__filename);
 class HardwareInterface extends EventEmitter {
     constructor() {
         super();
-        this.switch = new artik.gpio(30, 'sw403', 'in', 'both', 0)
-        this.led =  {
-            redLED: new artik.gpio(28, 'RedLED', 'out', 'none', 0),
-            blueLED: new artik.gpio(38, 'BlueLED', 'out', 'none', 0)
-        };
+        this.switch = new artik.gpio(30, 'sw403', 'in', 'both', 0);
+        this.redLED = new artik.gpio(28, 'RedLED', 'out', 'none', 0);
+        this.blueLED = new artik.gpio(38, 'BlueLED', 'out', 'none', 0);
         this.switchTimeCount = 0;
         this.switchTimer = 0;
     };
