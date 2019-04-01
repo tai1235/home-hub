@@ -38,18 +38,22 @@ class HardwareInterface extends EventEmitter {
     _handleSwitchEvent() {
         this.on('hardware-switch-push', () => {
             logger.debug(name + ' push');
+            this.blueLED.write(1);
         });
         this.on('hardware-switch-hold', time => {
             logger.debug(name + ' hold for ' + time);
+            this.redLED.write(1);
         });
         this.on('hardware-switch-release', time => {
             logger.debug(name + ' release after ' + time);
+            this.blueLED.write(0);
+            this.redLED.write(0);
         });
     };
 
     process() {
         this.switch.on('changed', value => {
-            this.emit('hardware-' + name + '-push');
+            this.emit('hardware-switch-push');
             if (value === 1) {
                 this.switchTimer = setInterval(() => {
                     ++this.switchTimeCount;
