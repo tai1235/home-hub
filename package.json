@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/tai1235/home-hub#readme",
   "dependencies": {
+    "artik-sdk": "^1.9.0",
     "bonjour-hap": "^3.5.1",
     "buffer-shims": "^1.0.0",
     "curve25519-n": "^1.2.0",
