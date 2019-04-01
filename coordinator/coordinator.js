@@ -13,6 +13,7 @@ const DeviceManager = require('../controller/device-manager/device-manager');
 const storage = require('node-persist');
 const DatabaseManager = require('../controller/database-manager/database-manager');
 const ServerCommunicator = require('../coordinator/server-communicator');
+const HardwareInterface = require('../coordinator/hardware-interface');
 
 const logger = new Logger(__filename);
 
@@ -25,6 +26,7 @@ class Coordinator {
         //     server: config.server,
         //     cloudMQTT: config.cloudMQTT
         // });
+        this.hardwareInterface = new HardwareInterface();
     }
 
     // Device's events from zigbee gateway
@@ -169,6 +171,22 @@ class Coordinator {
         // Send response to server
     }
 
+    handleHardwareButtonRelease() {
+        this.hardwareInterface.on('hardware-button-release', time => {
+            switch (time) {
+                case 0: {
+                    // For future uses
+                } break;
+                case 3: {
+                    // Open network
+                } break;
+                case 5: {
+                    // Reset factory
+                } break;
+            }
+        })
+    }
+
     start() {
         try {
             // Initiate the database manager
@@ -195,6 +213,8 @@ class Coordinator {
                 //     // Load all groups to cache (?)
                 //     logger.debug(groups);
                 // });
+                // Initiate the hardware interface
+                this.hardwareInterface.start();
             });
         } catch (e) {
             logger.error(e.message);
@@ -222,6 +242,8 @@ class Coordinator {
         this.handleServerGroupAdd();
         this.handleServerGroupRemove();
         this.handleServerGroupEnable();
+        // Handle events from Hardware
+        this.handleHardwareButtonRelease();
     }
 }
 

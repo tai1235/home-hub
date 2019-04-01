@@ -2,7 +2,7 @@
  * Author: TaiNV
  * Date Modified: 2019/03/31
  * Module: hardware-interface
- * Description: provide hardware's interface including switches and LEDs
+ * Description: provide hardware's interface including button and LEDs
  */
 
 // Dependencies
@@ -15,36 +15,40 @@ const logger = new Logger(__filename);
 class HardwareInterface extends EventEmitter {
     constructor() {
         super();
-        this.switch = new artik.gpio(30, 'sw403', 'in', 'both', 0);
+        this.button = new artik.gpio(30, 'sw403', 'in', 'both', 0);
         this.redLED = new artik.gpio(28, 'RedLED', 'out', 'none', 0);
         this.blueLED = new artik.gpio(38, 'BlueLED', 'out', 'none', 0);
-        this.switchTimeCount = 0;
-        this.switchTimer = 0;
+        this.buttonTimeCount = 0;
+        this.buttonTimer = 0;
     };
 
     start() {
-        this.switch.release(); this.switch.request();
+        this.button.release(); this.button.request();
         this.redLED.release(); this.redLED.request();
         this.blueLED.release(); this.blueLED.request();
         this._handleSwitchEvent();
+        this.process();
     };
 
     stop() {
-        this.switch.release();
+        this.button.release();
         this.redLED.release();
         this.blueLED.release();
     };
 
     _handleSwitchEvent() {
-        this.on('hardware-switch-push', () => {
+        this.on('hardware-button-push', () => {
             logger.debug(name + ' push');
-            this.blueLED.write(1);
         });
-        this.on('hardware-switch-hold', time => {
-            logger.debug(name + ' hold for ' + time);
+        this.on('hardware-button-hold-3', () => {
+            logger.debug(name + ' hold for 3s');
             this.redLED.write(1);
         });
-        this.on('hardware-switch-release', time => {
+        this.on('hardware-button-hold-5', () => {
+            logger.debug(name + ' hold for 5s');
+            this.blueLED.write(1);
+        });
+        this.on('hardware-button-release', time => {
             logger.debug(name + ' release after ' + time);
             this.blueLED.write(0);
             this.redLED.write(0);
@@ -52,37 +56,30 @@ class HardwareInterface extends EventEmitter {
     };
 
     process() {
-        this.switch.on('changed', value => {
-            this.emit('hardware-switch-push');
-            if (value === 1) {
-                this.switchTimer = setInterval(() => {
-                    ++this.switchTimeCount;
-                    if (this.switchTimeCount === 3) {
-                        this.emit('hardware-switch-hold', 3)
-                    } else if (this.switchTimeCount === 5) {
-                        this.emit('hardware-switch-hold', 5)
+        this.button.on('changed', value => {
+            this.emit('hardware-button-push');
+            if (value === '0') {
+                this.buttonTimer = setInterval(() => {
+                    ++this.buttonTimeCount;
+                    if (this.buttonTimeCount === 3) {
+                        this.emit('hardware-button-hold-3')
+                    } else if (this.buttonTimeCount === 5) {
+                        this.emit('hardware-button-hold-5')
                     }
-                }, 1000)
+                }, 1000);
             } else {
-                if (this.switchTimer) {
-                    clearInterval(this.switchTimer);
+                if (this.buttonTimer) {
+                    clearInterval(this.buttonTimer);
                 }
 
-                if (this.switchTimeCount < 3) this.switchTimeCount = 0;
-                else if (this.switchTimeCount < 5) this.switchTimeCount = 3;
-                else this.switchTimeCount = 5;
+                if (this.buttonTimeCount < 3) this.buttonTimeCount = 0;
+                else if (this.buttonTimeCount < 5) this.buttonTimeCount = 3;
+                else this.buttonTimeCount = 5;
 
-                this.emit('hardware-switch-release', this.switchTimeCount);
+                this.emit('hardware-button-release', this.buttonTimeCount);
             }
         })
     }
 }
 
-// For test
-let hardwareInterface = new HardwareInterface();
-hardwareInterface.start();
-hardwareInterface.process();
-
-process.on('SIGINT', () => {
-    hardwareInterface.stop();
-});
+module.exports = HardwareInterface;
