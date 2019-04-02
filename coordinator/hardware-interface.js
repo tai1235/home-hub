@@ -36,30 +36,6 @@ class HardwareInterface extends EventEmitter {
                 debug('Release button fail');
             }
         }
-        result = this.redLED.request();
-        debug('RedLED request return code ' + result);
-        if (result !== 0) {
-            debug('Release RedLED');
-            if (this.redLED.release() === 0) {
-                debug('Release RedLED success');
-                result = this.redLED.request();
-                debug('RedLED request return code ' + result);
-            } else {
-                debug('Release RedLED fail');
-            }
-        }
-        result = this.blueLED.request();
-        debug('BlueLED request return code ' + result);
-        if (result !== 0) {
-            debug('Release BlueLED');
-            if (this.blueLED.release() === 0) {
-                debug('Release BlueLED success');
-                result = this.blueLED.request();
-                debug('BlueLED request return code ' + result);
-            } else {
-                debug('Release BlueLED fail');
-            }
-        }
         this._handleSwitchEvent();
         this.process();
     };
@@ -76,17 +52,25 @@ class HardwareInterface extends EventEmitter {
         });
         this.on('hardware-button-hold-3', () => {
             logger.debug('button hold for 3s');
+            this.redLED.request();
             this.redLED.write(1);
+            this.redLED.release();
         });
         this.on('hardware-button-hold-5', () => {
             logger.debug('button hold for 5s');
+            this.blueLED.request();
             this.blueLED.write(1);
+            this.blueLED.release();
         });
         this.on('hardware-button-release', time => {
             logger.debug('button release after ' + time + 's');
             this.buttonTimeCount = 0;
+            this.redLED.request();
+            this.blueLED.request();
             this.blueLED.write(0);
             this.redLED.write(0);
+            this.redLED.release();
+            this.blueLED.release();
         });
     };
 
