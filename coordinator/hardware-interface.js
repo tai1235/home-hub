@@ -9,6 +9,7 @@
 const artik = require('artik-sdk');
 const Logger = require('../libraries/system-log');
 const EventEmitter = require('events');
+const debug = require('debug')('HardwareInterface');
 
 const logger = new Logger(__filename);
 
@@ -24,22 +25,40 @@ class HardwareInterface extends EventEmitter {
 
     start() {
         let result = this.button.request();
-        logger.debug('Button request return code ' + result);
+        debug('Button request return code ' + result);
         if (result !== 0) {
-            if (this.button.release() === 0)
-                this.button.request();
+            debug('Release button');
+            if (this.button.release() === 0) {
+                debug('Release button success');
+                result = this.button.request();
+                debug('Button request return code ' + result);
+            } else {
+                debug('Release button fail');
+            }
         }
         result = this.redLED.request();
-        logger.debug('RedLED request return code ' + result);
+        debug('RedLED request return code ' + result);
         if (result !== 0) {
-            if (this.redLED.release() === 0)
-                this.redLED.request();
+            debug('Release RedLED');
+            if (this.redLED.release() === 0) {
+                debug('Release RedLED success');
+                result = this.redLED.request();
+                debug('RedLED request return code ' + result);
+            } else {
+                debug('Release RedLED fail');
+            }
         }
         result = this.blueLED.request();
-        logger.debug('BlueLED request return code ' + result);
+        debug('BlueLED request return code ' + result);
         if (result !== 0) {
-            if (this.blueLED.release() === 0)
-                this.blueLED.request();
+            debug('Release BlueLED');
+            if (this.blueLED.release() === 0) {
+                debug('Release BlueLED success');
+                result = this.blueLED.request();
+                debug('BlueLED request return code ' + result);
+            } else {
+                debug('Release BlueLED fail');
+            }
         }
         this._handleSwitchEvent();
         this.process();
