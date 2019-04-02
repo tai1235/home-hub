@@ -23,9 +23,24 @@ class HardwareInterface extends EventEmitter {
     };
 
     start() {
-        this.button.release(); this.button.request();
-        this.redLED.release(); this.redLED.request();
-        this.blueLED.release(); this.blueLED.request();
+        let result = this.button.request();
+        logger.debug('Button request return code ' + result);
+        if (result !== 0) {
+            if (this.button.release() === 0)
+                this.button.request();
+        }
+        result = this.redLED.request();
+        logger.debug('RedLED request return code ' + result);
+        if (result !== 0) {
+            if (this.redLED.release() === 0)
+                this.redLED.request();
+        }
+        result = this.blueLED.request();
+        logger.debug('BlueLED request return code ' + result);
+        if (result !== 0) {
+            if (this.blueLED.release() === 0)
+                this.blueLED.request();
+        }
         this._handleSwitchEvent();
         this.process();
     };
@@ -49,7 +64,7 @@ class HardwareInterface extends EventEmitter {
             this.blueLED.write(1);
         });
         this.on('hardware-button-release', time => {
-            logger.debug('button release after ' + time);
+            logger.debug('button release after ' + time + 's');
             this.buttonTimeCount = 0;
             this.blueLED.write(0);
             this.redLED.write(0);
