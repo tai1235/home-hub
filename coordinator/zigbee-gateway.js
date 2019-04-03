@@ -96,7 +96,6 @@ class ZigbeeGateway extends EventEmitter {
     static createZigbeeCommand(cmd, params, postTimeDelay = 0) {
         let payload = {};
         payload.commands = [];
-        let eui64 = params.eui64.split('x')[1];
         switch (cmd) {
             case ZigbeeCommand.Plugin.FormNetwork: {
                 /**
@@ -117,6 +116,7 @@ class ZigbeeGateway extends EventEmitter {
                 })
             } break;
             case ZigbeeCommand.OnOff.On: {
+                let eui64 = params.eui64.split('x')[1];
                 /**
                  * {Object} params - Required params for this command
                  * {String} params.eui64 - Device used for this command
@@ -147,6 +147,7 @@ class ZigbeeGateway extends EventEmitter {
                 });
             } break;
             case ZigbeeCommand.LevelControl.MoveToLevel: {
+                let eui64 = params.eui64.split('x')[1];
                 /**
                  * {Object} params - Required params for this command
                  * {String} params.eui64 - Device used for this command
