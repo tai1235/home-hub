@@ -14,6 +14,7 @@ const storage = require('node-persist');
 const DatabaseManager = require('../controller/database-manager/database-manager');
 const ServerCommunicator = require('../coordinator/server-communicator');
 const HardwareInterface = require('../coordinator/hardware-interface');
+const ZigbeeCommand = require('../coordinator/zigbee').ZigbeeCommand;
 
 const logger = new Logger(__filename);
 
@@ -179,6 +180,8 @@ class Coordinator {
                 } break;
                 case 3: {
                     // Open network
+                    let command = ZigbeeGateway.createZigbeeCommand(ZigbeeCommand.Plugin.PermitJoin);
+                    this.zigbeeGateway.publish(command);
                 } break;
                 case 5: {
                     // Reset factory

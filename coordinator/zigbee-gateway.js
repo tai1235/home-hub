@@ -34,6 +34,9 @@ class ZigbeeGateway extends EventEmitter {
             port: 1883,
             protocol: 'mqtt'
         });
+        // Form network
+        let command = ZigbeeGateway.createZigbeeCommand(ZigbeeCommand.Plugin.FormNetwork);
+        this.publish(command);
     }
 
     onConnect(callback) {
