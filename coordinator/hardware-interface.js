@@ -10,6 +10,8 @@ const artik = require('artik-sdk');
 const Logger = require('../libraries/system-log');
 const EventEmitter = require('events');
 const debug = require('debug')('HardwareInterface');
+const fs = require('fs');
+const childProcess = require('child_process');
 
 const logger = new Logger(__filename);
 
@@ -24,18 +26,18 @@ class HardwareInterface extends EventEmitter {
     };
 
     start() {
-        let result = this.button.request();
-        debug('Button request return code ' + result);
-        if (result !== 0) {
-            debug('Release button');
-            if (this.button.release() === 0) {
-                debug('Release button success');
-                result = this.button.request();
-                debug('Button request return code ' + result);
-            } else {
-                debug('Release button fail');
-            }
-        }
+        if (fs.existsSync('/sys/class/gpio/gpio30'))
+            childProcess.execSync('echo 30 > /sys/class/gpio/unexport');
+        if (fs.existsSync('/sys/class/gpio/gpio28'))
+            childProcess.execSync('echo 28 > /sys/class/gpio/unexport');
+        if (fs.existsSync('/sys/class/gpio/gpio38'))
+            childProcess.execSync('echo 38 > /sys/class/gpio/unexport');
+
+        let result;
+        result = this.button.request(); debug('Button request return code ' + result);
+        result = this.redLED.request(); debug('Red LED request return code ' + result);
+        result = this.blueLED.request(); debug('Blue LED request return code ' + result);
+
         this._handleSwitchEvent();
         this.process();
     };
