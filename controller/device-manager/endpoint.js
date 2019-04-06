@@ -8,8 +8,8 @@
 // Dependencies
 let Service = require('../../hap').Service;
 let Characteristic = require('../../hap').Characteristic;
-let ZigbeeGateway = require('../../coordinator/zigbee-gateway');
-let ZigbeeCommand = require('../../coordinator/zigbee').ZigbeeCommand;
+let ZigbeeGateway = require('../../coordinator/zigbee/zigbee-gateway');
+let ZigbeeCommand = require('../../coordinator/zigbee/zigbee').ZigbeeCommand;
 let Logger = require('../../libraries/system-log');
 let config = require('../../config');
 

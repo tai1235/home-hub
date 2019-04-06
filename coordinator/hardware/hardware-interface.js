@@ -7,7 +7,7 @@
 
 // Dependencies
 const artik = require('artik-sdk');
-const Logger = require('../libraries/system-log');
+const Logger = require('../../libraries/system-log');
 const EventEmitter = require('events');
 const debug = require('debug')('HardwareInterface');
 const fs = require('fs');
@@ -89,13 +89,15 @@ class HardwareInterface extends EventEmitter {
                     }
                 }, 1000);
             } else {
-                if (this.buttonTimer) {
+                if (this.buttonTimer)
                     clearInterval(this.buttonTimer);
-                }
 
-                if (this.buttonTimeCount < 3) this.buttonTimeCount = 0;
-                else if (this.buttonTimeCount < 5) this.buttonTimeCount = 3;
-                else this.buttonTimeCount = 5;
+                if (this.buttonTimeCount < 3)
+                    this.buttonTimeCount = 0;
+                else if (this.buttonTimeCount < 5)
+                    this.buttonTimeCount = 3;
+                else
+                    this.buttonTimeCount = 5;
 
                 this.emit('hardware-button-release', this.buttonTimeCount);
             }

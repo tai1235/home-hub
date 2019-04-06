@@ -7,7 +7,7 @@
 
 // Depedencies
 const EventEmitter = require('events');
-const Logger = require('../libraries/system-log');
+const Logger = require('../../libraries/system-log');
 const mqtt = require('mqtt');
 const { ZigbeeCommand, ZigbeeCluster } = require('./zigbee');
 

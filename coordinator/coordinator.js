@@ -6,15 +6,15 @@
  */
 
 // Dependencies
-const ZigbeeGateway = require('./zigbee-gateway');
+const ZigbeeGateway = require('./zigbee/zigbee-gateway');
 const Logger = require('../libraries/system-log');
 const config = require('../config');
 const DeviceManager = require('../controller/device-manager/device-manager');
 const storage = require('node-persist');
 const DatabaseManager = require('../controller/database-manager/database-manager');
-const ServerCommunicator = require('../coordinator/server-communicator');
-const HardwareInterface = require('../coordinator/hardware-interface');
-const ZigbeeCommand = require('../coordinator/zigbee').ZigbeeCommand;
+const ServerCommunicator = require('./server/server-communicator');
+// const HardwareInterface = require('./hardware/hardware-interface');
+const ZigbeeCommand = require('./zigbee/zigbee').ZigbeeCommand;
 
 const logger = new Logger(__filename);
 

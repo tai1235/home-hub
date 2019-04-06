@@ -10,7 +10,8 @@ let http = require('http');
 let https = require('https');
 let mqtt = require('mqtt');
 let EventEmitter = require('events');
-let Logger = require('../libraries/system-log');
+let Logger = require('../../libraries/system-log');
+let os = require('os');
 
 let logger = new Logger(__filename);
 
@@ -29,8 +30,19 @@ class ServerCommunicator extends EventEmitter {
     }
 
     identifyHub(callback) {
-        const payload = {
+        let ifaces = os.networkInterfaces();
+        let networkInformation = [];
 
+        Object.keys(ifaces).forEach(ifname => {
+            ifaces[ifname].forEach(iface => {
+                if (iface.family === 'IPv4' && iface.internal === false) {
+                    networkInformation[ifname] = iface;
+                }
+            })
+        });
+
+        const payload = {
+            networkInterface: networkInformation,
         };
 
         const payloadString = JSON.stringify(payload);
