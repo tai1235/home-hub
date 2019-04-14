@@ -13,15 +13,15 @@ const DeviceManager = require('../controller/device-manager/device-manager');
 const storage = require('node-persist');
 const DatabaseManager = require('../controller/database-manager/database-manager');
 const ServerCommunicator = require('./server/server-communicator');
-// const HardwareInterface = require('./hardware/hardware-interface');
+const HardwareInterface = require('./hardware/hardware-interface');
 const ZigbeeCommand = require('./zigbee/zigbee').ZigbeeCommand;
 
 const logger = new Logger(__filename);
 
 class Coordinator {
-    constructor() {
+    constructor(mac) {
         this.zigbeeGateway = new ZigbeeGateway(config.gatewayId);
-        this.deviceManager = new DeviceManager();
+        this.deviceManager = new DeviceManager(mac);
         this.databaseManager = new DatabaseManager();
         // this.serverCommunicator = new ServerCommunicator({
         //     server: config.server,
@@ -185,6 +185,7 @@ class Coordinator {
                 } break;
                 case 5: {
                     // Reset factory
+                    this.deviceManager.reset();
                 } break;
             }
         })

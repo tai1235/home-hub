@@ -15,7 +15,7 @@ let Device = require('../../controller/device-manager/device').Device;
 let logger = new Logger(__filename);
 
 class DeviceManager extends Bridge {
-    constructor() {
+    constructor(mac) {
         super('Home Hub', uuid.generate('Home Hub'));
         this.on('identify', (paired, callback) => {
             if (paired)
@@ -23,7 +23,7 @@ class DeviceManager extends Bridge {
             callback();
         });
         this.bridgeConfig = {
-            username: '9C:13:12:45:F7:C3',
+            username: mac,
             port: 56423,
             pincode: '031-45-154',
             category: Accessory.Categories.BRIDGE
@@ -33,6 +33,12 @@ class DeviceManager extends Bridge {
     start() {
         logger.info('START homekit bridge');
         this.publish(this.bridgeConfig);
+    }
+
+    reset() {
+        logger.info('RESET homekit bridge');
+        this.destroy();
+        this.start();
     }
 
     addDevice(deviceToAdd) {
