@@ -22,18 +22,18 @@ const ZigbeeCluster = {
     BASIC: {
         ID: '0x0000',
         Attribute: {
-            ZCL_VERSION_ATTRIBUTE_ID: { ID: '0002', type: '20' },
-            ZCL_MANUFACTURER_NAME_ATTRIBUTE_ID: { ID: '0004', type: '42' },
-            ZCL_MODEL_IDENTIFIER_ATTRIBUTE_ID: { ID: '0005', type: '42' },
-            ZCL_POWER_SOURCE_ATTRIBUTE_ID: { ID: '0007', type: '30' },
-            ZCL_BASIC_CLUSTER_CLUSTER_REVISION_SERVER_ATTRIBUTE_ID: { ID: 'FFFD', type: '21' }
+            VERSION: { ID: '0002', type: '20' },
+            MANUFACTURER_NAME: { ID: '0004', type: '42' },
+            MODEL_IDENTIFIER: { ID: '0005', type: '42' },
+            POWER_SOURCE: { ID: '0007', type: '30' },
+            BASIC_CLUSTER_CLUSTER_REVISION_SERVER: { ID: 'FFFD', type: '21' }
         }
     },
     ON_OFF: {
         ID: '0x0006',
         Attribute: {
-            ZCL_ON_OFF_ATTRIBUTE_ID: { ID: '0000',  type: '10' },
-            ZCL_ON_OFF_CLUSTER_CLUSTER_REVISION_SERVER_ATTRIBUTE_ID: { ID: 'FFFD', type: '21' }
+            ON_OFF: { ID: '0000',  type: '10' },
+            ON_OFF_CLUSTER_CLUSTER_REVISION_SERVER: { ID: 'FFFD', type: '21' }
         },
         Command: {
             On: '01',
@@ -46,9 +46,9 @@ const ZigbeeCluster = {
     IDENTIFY: {
         ID: '0x0003',
         Attribute: {
-            ZCL_IDENTIFY_TIME_ATTRIBUTE_ID: { ID: '0000', type: '21' },
-            ZCL_COMMISSION_STATE_ATTRIBUTE_ID: { ID: '0001', type: '18' },
-            ZCL_IDENTIFY_CLUSTER_CLUSTER_REVISION_SERVER_ATTRIBUTE_ID: { ID: 'FFFD', type: '21' }
+            IDENTIFY_TIME: { ID: '0000', type: '21' },
+            COMMISSION_STATE: { ID: '0001', type: '18' },
+            IDENTIFY_CLUSTER_CLUSTER_REVISION_SERVER: { ID: 'FFFD', type: '21' }
         },
         Command: {
             Identify: '00',
@@ -58,10 +58,10 @@ const ZigbeeCluster = {
     LEVEL_CONTROL: {
         ID: '0x0008',
         Attribute: {
-            ZCL_CURRENT_LEVEL_ATTRIBUTE_ID: { ID: '0000', type: '20' },
-            ZCL_LEVEL_CONTROL_REMAINING_TIME_ATTRIBUTE_ID: { ID: '0001', type: '21' },
-            ZCL_ON_LEVEL_ATTRIBUTE_ID: { ID: '0011', type: '20' },
-            ZCL_LEVEL_CONTROL_CLUSTER_CLUSTER_REVISION_SERVER_ATTRIBUTE_ID: { ID: 'FFFD', type: '21' }
+            CURRENT_LEVEL: { ID: '0000', type: '20' },
+            LEVEL_CONTROL_REMAINING_TIME: { ID: '0001', type: '21' },
+            ON_LEVEL: { ID: '0011', type: '20' },
+            LEVEL_CONTROL_CLUSTER_CLUSTER_REVISION_SERVER: { ID: 'FFFD', type: '21' }
         },
         Command: {
             MoveToLevel: '00',
