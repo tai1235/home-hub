@@ -29,7 +29,7 @@ const ZigbeeCluster = {
             ZCL_BASIC_CLUSTER_CLUSTER_REVISION_SERVER_ATTRIBUTE_ID: { ID: 'FFFD', type: '21' }
         }
     },
-    ONOFF: {
+    ON_OFF: {
         ID: '0x0006',
         Attribute: {
             ZCL_ON_OFF_ATTRIBUTE_ID: { ID: '0000',  type: '10' },
@@ -55,7 +55,7 @@ const ZigbeeCluster = {
             IdentifyQuery: '01'
         }
     },
-    LEVELCONTROL: {
+    LEVEL_CONTROL: {
         ID: '0x0008',
         Attribute: {
             ZCL_CURRENT_LEVEL_ATTRIBUTE_ID: { ID: '0000', type: '20' },
@@ -73,7 +73,36 @@ const ZigbeeCluster = {
             StepWithOnOff: '06',
             StopWithOnOff: '07'
         }
+    },
+    LUMINANCE_MEASUREMENT: {
+        ID: '0x0400',
+        Attribute: {
 
+        }
+    },
+    TEMPERATURE_MEASUREMENT: {
+        ID: '0x0402',
+        Attribute: {
+
+        }
+    },
+    HUMIDITY_MEASUREMENT: {
+        ID: '0x0405',
+        Attribute: {
+
+        }
+    },
+    IAS_ZONE: {
+        ID: '0x0500',
+        Attribute: {
+
+        }
+    },
+    DOOR_LOCK: {
+        ID: '0x0101',
+        Attribute: {
+
+        }
     }
 };
 

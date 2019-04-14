@@ -199,17 +199,17 @@ class ZigbeeGateway extends EventEmitter {
             case ZigbeeCluster.BASIC.ID: {
                 switch(commandData.substr(2,4)){
                     case ZigbeeCluster.BASIC.Attribute.ZCL_MANUFACTURER_NAME_ATTRIBUTE_ID.ID:{
-                        if(commandData.substr(8, 2) !== ZigbeeCluster.BASIC.Attribute.ZCL_MANUFACTURER_NAME_ATTRIBUTE_ID.type){
+                        if (commandData.substr(8, 2) !== ZigbeeCluster.BASIC.Attribute.ZCL_MANUFACTURER_NAME_ATTRIBUTE_ID.type) {
                             break;
-                        }else{
+                        } else {
                             value.manufacturer = ZigbeeGateway.hex2string(commandData.substr(10, 8));
                             logger.debug(value.manufacturer);
                         }
                     } break;
                     case ZigbeeCluster.BASIC.Attribute.ZCL_MODEL_IDENTIFIER_ATTRIBUTE_ID.ID:{
-                        if(commandData.substr(8, 2) !== ZigbeeCluster.BASIC.Attribute.ZCL_MODEL_IDENTIFIER_ATTRIBUTE_ID.type){
+                        if (commandData.substr(8, 2) !== ZigbeeCluster.BASIC.Attribute.ZCL_MODEL_IDENTIFIER_ATTRIBUTE_ID.type) {
                             break;
-                        }else{
+                        } else {
                             value.model = ZigbeeGateway.hex2string(commandData.substr(10,12));
                             logger.debug(value.model);
                         }
@@ -218,16 +218,16 @@ class ZigbeeGateway extends EventEmitter {
                     break;
                 }
             } break;
-            case ZigbeeCluster.ONOFF.ID: {
+            case ZigbeeCluster.ON_OFF.ID: {
                 switch (commandData.substr(2, 4)) {
-                    case ZigbeeCluster.ONOFF.Attribute.ZCL_ON_OFF_ATTRIBUTE_ID.ID: {
-                        if (commandData.substr(8, 2) !== ZigbeeCluster.ONOFF.Attribute.ZCL_ON_OFF_ATTRIBUTE_ID.type) {
+                    case ZigbeeCluster.ON_OFF.Attribute.ZCL_ON_OFF_ATTRIBUTE_ID.ID: {
+                        if (commandData.substr(8, 2) !== ZigbeeCluster.ON_OFF.Attribute.ZCL_ON_OFF_ATTRIBUTE_ID.type) {
                             break;
                         } else {
                             value.on = commandData.substr(10, 2) === '01';
                         }
                     } break;
-                    case ZigbeeCluster.ONOFF.Attribute.ZCL_ON_OFF_CLUSTER_CLUSTER_REVISION_SERVER_ATTRIBUTE_ID.ID: {
+                    case ZigbeeCluster.ON_OFF.Attribute.ZCL_ON_OFF_CLUSTER_CLUSTER_REVISION_SERVER_ATTRIBUTE_ID.ID: {
 
                     } break;
                     default: {
@@ -235,7 +235,7 @@ class ZigbeeGateway extends EventEmitter {
                     } break;
                 }
             } break;
-            case ZigbeeCluster.LEVELCONTROL.ID: {
+            case ZigbeeCluster.LEVEL_CONTROL.ID: {
 
             } break;
         }

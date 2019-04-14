@@ -17,11 +17,15 @@ let logger = new Logger(__filename);
 let zigbeePublisher = new ZigbeeGateway(config.gatewayId);
 
 const EndpointType = {
-    // TODO Taibeo Dien
     SWITCH: '0x0100',
     LIGHT: '0x0103',
-    DOORLOCK: '0x000A',
-    THERMOSTAT: '0x0301',
+    CONTACT_SENSOR: '0x000A',
+    MOTION_SENSOR: '0x0403',
+    LIGHT_SENSOR: '0x0106',
+    TEMPERATURE_SENSOR: '0x0302',
+    HUMIDITY_SENSOR: '0x0301',
+    BATTERY: '0x0017',
+    PEBBLE: '',
 };
 
 zigbeePublisher.start();
@@ -147,4 +151,176 @@ class LightEndpoint extends Service.Lightbulb {
     }
 }
 
-module.exports = { EndpointType, SwitchEndpoint, LightEndpoint };
+class ContactSensorEndpoint extends Service.ContactSensor {
+    constructor(eui64, endpoint) {
+        super(eui64 + '_' + endpoint, endpoint);
+        this.eui64 = eui64;
+        this.endpoint = endpoint;
+        this.status = { state: 1 };
+        this.getCharacteristic(Characteristic.ContactSensorState)
+            .on('get', callback => {
+                logger.info('GET characteristic contact sensor state of ' + this.name + ': ' + this.status.state);
+                callback(null, this.status.state)
+            })
+    }
+
+    get name() {
+        return `${this.eui64}_${this.endpoint}`;
+    }
+
+    updateValue(value) {
+        if (value.state !== undefined) {
+            logger.info('UPDATE characteristic contact sensor state of ' + this.name + ': ' + value.state);
+            this.status.state = value.state;
+            this.getCharacteristic(Characteristic.ContactSensorState)
+                .updateValue(value.state, undefined);
+        }
+    }
+}
+
+class MotionSensorEndpoint extends Service.MotionSensor {
+    constructor(eui64, endpoint) {
+        super(eui64 + '_' + endpoint, endpoint);
+        this.eui64 = eui64;
+        this.endpoint = endpoint;
+        this.status = { state: 1 };
+        this.getCharacteristic(Characteristic.MotionDetected)
+            .on('get', callback => {
+                logger.info('GET characteristic motion detected of ' + this.name + ': ' + this.status.state);
+                callback(null, this.status.state)
+            })
+    }
+
+    get name() {
+        return `${this.eui64}_${this.endpoint}`;
+    }
+
+    updateValue(value) {
+        if (value.state !== undefined) {
+            logger.info('UPDATE characteristic motion detected of ' + this.name + ': ' + value.state);
+            this.status.state = value.state;
+            this.getCharacteristic(Characteristic.MotionDetected)
+                .updateValue(value.state, undefined);
+        }
+    }
+}
+
+class LightSensorEndpoint extends Service.LightSensor {
+    constructor(eui64, endpoint) {
+        super(eui64 + '_' + endpoint, endpoint);
+        this.eui64 = eui64;
+        this.endpoint = endpoint;
+        this.status = { level: 0 };
+        this.getCharacteristic(Characteristic.CurrentAmbientLightLevel)
+            .on('get', callback => {
+                logger.info('GET characteristic current ambient light level of ' + this.name + ': ' + this.status.level);
+                callback(null, this.status.level)
+            })
+    }
+
+    get name() {
+        return `${this.eui64}_${this.endpoint}`;
+    }
+
+    updateValue(value) {
+        if (value.level !== undefined) {
+            logger.info('UPDATE characteristic current ambient light level of ' + this.name + ': ' + value.level);
+            this.status.level = value.level;
+            this.getCharacteristic(Characteristic.CurrentAmbientLightLevel)
+                .updateValue(value.level, undefined);
+        }
+    }
+}
+
+class TemperatureSensorEndpoint extends Service.TemperatureSensor {
+    constructor(eui64, endpoint) {
+        super(eui64 + '_' + endpoint, endpoint);
+        this.eui64 = eui64;
+        this.endpoint = endpoint;
+        this.status = { level: 0 };
+        this.getCharacteristic(Characteristic.CurrentTemperature)
+            .on('get', callback => {
+                logger.info('GET characteristic current temperature of ' + this.name + ': ' + this.status.level);
+                callback(null, this.status.level)
+            })
+    }
+
+    get name() {
+        return `${this.eui64}_${this.endpoint}`;
+    }
+
+    updateValue(value) {
+        if (value.level !== undefined) {
+            logger.info('UPDATE characteristic current temperature of ' + this.name + ': ' + value.level);
+            this.status.level = value.level;
+            this.getCharacteristic(Characteristic.CurrentTemperature)
+                .updateValue(value.level, undefined);
+        }
+    }
+}
+
+class HumiditySensorEndpoint extends Service.HumiditySensor {
+    constructor(eui64, endpoint) {
+        super(eui64 + '_' + endpoint, endpoint);
+        this.eui64 = eui64;
+        this.endpoint = endpoint;
+        this.status = {level: 0};
+        this.getCharacteristic(Characteristic.CurrentRelativeHumidity)
+            .on('get', callback => {
+                logger.info('GET characteristic current relative humidity of ' + this.name + ': ' + this.status.level);
+                callback(null, this.status.level)
+            })
+    }
+
+    get name() {
+        return `${this.eui64}_${this.endpoint}`;
+    }
+
+    updateValue(value) {
+        if (value.level !== undefined) {
+            logger.info('UPDATE characteristic current relative humidity of ' + this.name + ': ' + value.level);
+            this.status.level = value.level;
+            this.getCharacteristic(Characteristic.CurrentRelativeHumidity)
+                .updateValue(value.level, undefined);
+        }
+    }
+}
+
+class BatteryEndpoint extends Service.BatteryService {
+    constructor(eui64, endpoint) {
+        super(eui64 + '_' + endpoint, endpoint);
+        this.eui64 = eui64;
+        this.endpoint = endpoint;
+        this.status = {level: 0};
+        this.getCharacteristic(Characteristic.BatteryLevel)
+            .on('get', callback => {
+                logger.info('GET characteristic battery level of ' + this.name + ': ' + this.status.level);
+                callback(null, this.status.level)
+            })
+    }
+
+    get name() {
+        return `${this.eui64}_${this.endpoint}`;
+    }
+
+    updateValue(value) {
+        if (value.level !== undefined) {
+            logger.info('UPDATE characteristic battery level of ' + this.name + ': ' + value.level);
+            this.status.level = value.level;
+            this.getCharacteristic(Characteristic.BatteryLevel)
+                .updateValue(value.level, undefined);
+        }
+    }
+}
+
+module.exports = {
+    EndpointType,
+    SwitchEndpoint,
+    LightEndpoint,
+    ContactSensorEndpoint,
+    MotionSensorEndpoint,
+    LightSensorEndpoint,
+    TemperatureSensorEndpoint,
+    HumiditySensorEndpoint,
+    BatteryEndpoint
+};

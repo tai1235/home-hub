@@ -11,7 +11,7 @@ let Service = require('../../hap').Service;
 let Characteristic = require('../../hap').Characteristic;
 let uuid = require('../../hap').uuid;
 let Logger = require('../../libraries/system-log');
-let { SwitchEndpoint, LightEndpoint } = require('../../controller/device-manager/endpoint');
+let Endpoint = require('../../controller/device-manager/endpoint');
 let EndpointType = require('../../controller/device-manager/endpoint').EndpointType;
 
 let logger = new Logger(__filename);
@@ -75,15 +75,46 @@ class Device extends Accessory {
         logger.info('ADD endpoint ' + this.getEndpointName(endpoint));
         switch (type) {
             case EndpointType.SWITCH: {
-                let newEndpoint = new SwitchEndpoint(this.eui64, endpoint);
+                let newEndpoint = new Endpoint.SwitchEndpoint(this.eui64, endpoint);
                 this.addService(newEndpoint);
                 this.endpoints.push(newEndpoint);
             } break;
             case EndpointType.LIGHT: {
-                let newEndpoint = new LightEndpoint(this.eui64, endpoint);
+                let newEndpoint = new Endpoint.LightEndpoint(this.eui64, endpoint);
                 this.addService(newEndpoint);
                 this.endpoints.push(newEndpoint);
             } break;
+            case EndpointType.CONTACT_SENSOR: {
+                let newEndpoint = new Endpoint.ContactSensorEndpoint(this.eui64, endpoint);
+                this.addService(newEndpoint);
+                this.endpoints.push(newEndpoint);
+            } break;
+            case EndpointType.MOTION_SENSOR: {
+                let newEndpoint = new Endpoint.MotionSensorEndpoint(this.eui64, endpoint);
+                this.addService(newEndpoint);
+                this.endpoints.push(newEndpoint);
+            } break;
+            case EndpointType.LIGHT_SENSOR: {
+                let newEndpoint = new Endpoint.LightSensorEndpoint(this.eui64, endpoint);
+                this.addService(newEndpoint);
+                this.endpoints.push(newEndpoint);
+            } break;
+            case EndpointType.TEMPERATURE_SENSOR: {
+                let newEndpoint = new Endpoint.TemperatureSensorEndpoint(this.eui64, endpoint);
+                this.addService(newEndpoint);
+                this.endpoints.push(newEndpoint);
+            } break;
+            case EndpointType.HUMIDITY_SENSOR: {
+                let newEndpoint = new Endpoint.HumiditySensorEndpoint(this.eui64, endpoint);
+                this.addService(newEndpoint);
+                this.endpoints.push(newEndpoint);
+            } break;
+            case EndpointType.BATTERY: {
+                let newEndpoint = new Endpoint.BatteryEndpoint(this.eui64, endpoint);
+                this.addService(newEndpoint);
+                this.endpoints.push(newEndpoint);
+            } break;
+            default: break;
         }
     }
 

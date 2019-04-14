@@ -16,9 +16,6 @@ let environments = {
                 key: '',
             }
         },
-        hashingSecret: 'alpaca',
-        logPath:  __dirname + '/log.txt',
-        gatewayId: '000B57FFFE572517',
         cloudMQTT: {
             host: 'm24.cloudmqtt.com',
             port: 16032,
@@ -27,21 +24,22 @@ let environments = {
                 password: 'x1q_MUb27bLz'
             }
         },
+
+        hashingSecret: 'alpaca',
+        logPath:  __dirname + '/log.txt',
+        gatewayId: '000B57FFFE572517',
         runningMode: 0,
-        resourceID: 'home-hub_1_1'
+        clientID: 'home-hub_1_1'
     },
     // Production environment
     production: {
-        envName: 'production',
+        envName: 'staging',
         server: {
             host: 'http://e835f1e4.ngrok.io',
             authentication: {
                 key: '',
             }
         },
-        hashingSecret: 'alpaca',
-        logPath:  __dirname + '/log.txt',
-        gatewayId: '000B57FFFE572517',
         cloudMQTT: {
             host: 'm24.cloudmqtt.com',
             port: 16032,
@@ -50,8 +48,11 @@ let environments = {
                 password: 'x1q_MUb27bLz'
             }
         },
+        hashingSecret: 'alpaca',
+        logPath:  __dirname + '/log.txt',
+        gatewayId: '000B57FFFE572517',
         runningMode: 0,
-        resourceID: 'home-hub_1_1'
+        clientID: 'home-hub_1_1'
     }
 };
 
