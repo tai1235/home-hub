@@ -189,56 +189,113 @@ class ZigbeeGateway extends EventEmitter {
         return JSON.stringify(payload);
     }
 
-    //TODO Taibeo Get command value from cluster ID and command data
      static _parseClusterValue(clusterId, commandData) {
         let value = {};
         if (commandData === undefined)
             return value;
+        let attributeID = commandData.substr(2, 4);
+        let attributeType = commandData.substr(8, 2);
+        let attributeData = commandData.substr(10, commandData.length - 12); // Ignore 2 last bytes
+
         switch (clusterId) {
-            // TODO Taibeo Switch theo cac case cuar Attribute duoc liet ke o tren
+            // Using switch for each ClusterID for addition of Attribute in future
             case ZigbeeCluster.BASIC.ID: {
-                switch(commandData.substr(2,4)){
-                    case ZigbeeCluster.BASIC.Attribute.MANUFACTURER_NAME.ID:{
-                        if (commandData.substr(8, 2) !== ZigbeeCluster.BASIC.Attribute.MANUFACTURER_NAME.type) {
-                            break;
-                        } else {
-                            value.manufacturer = ZigbeeGateway.hex2string(commandData.substr(10, 8));
+                switch(attributeID){
+                    case ZigbeeCluster.BASIC.Attribute.MANUFACTURER_NAME.ID: {
+                        if (attributeType === ZigbeeCluster.BASIC.Attribute.MANUFACTURER_NAME.type) {
+                            value.manufacturer = ZigbeeGateway.hex2string(attributeData);
                             logger.debug(value.manufacturer);
                         }
                     } break;
                     case ZigbeeCluster.BASIC.Attribute.MODEL_IDENTIFIER.ID:{
-                        if (commandData.substr(8, 2) !== ZigbeeCluster.BASIC.Attribute.MODEL_IDENTIFIER.type) {
-                            break;
-                        } else {
-                            value.model = ZigbeeGateway.hex2string(commandData.substr(10,12));
+                        if (attributeType === ZigbeeCluster.BASIC.Attribute.MODEL_IDENTIFIER.type) {
+                            value.model = ZigbeeGateway.hex2string(attributeData);
                             logger.debug(value.model);
                         }
                     } break;
-                    default:
-                    break;
+                    default: break;
                 }
             } break;
             case ZigbeeCluster.ON_OFF.ID: {
-                switch (commandData.substr(2, 4)) {
+                switch (attributeID) {
                     case ZigbeeCluster.ON_OFF.Attribute.ON_OFF.ID: {
-                        if (commandData.substr(8, 2) !== ZigbeeCluster.ON_OFF.Attribute.ON_OFF.type) {
-                            break;
-                        } else {
-                            value.on = commandData.substr(10, 2) === '01';
+                        if (attributeType === ZigbeeCluster.ON_OFF.Attribute.ON_OFF.type) {
+                            value.on = attributeData === '01';
                         }
                     } break;
                     case ZigbeeCluster.ON_OFF.Attribute.ON_OFF_CLUSTER_CLUSTER_REVISION_SERVER.ID: {
 
                     } break;
-                    default: {
-
-                    } break;
+                    default: break;
                 }
             } break;
             case ZigbeeCluster.LEVEL_CONTROL.ID: {
 
             } break;
+            case ZigbeeCluster.ILLUM_MEASUREMENT.ID: {
+                switch (attributeID) {
+                    case ZigbeeCluster.ILLUM_MEASUREMENT.Attribute.ILLUM_MEASURED_VALUE.ID: {
+                        if (attributeType === ZigbeeCluster.ILLUM_MEASUREMENT.Attribute.ILLUM_MEASURED_VALUE.type) {
+                            value.lux = parseInt(attributeData, 16);
+                        }
+                    } break;
+                    default: break;
+                }
+            } break;
+            case ZigbeeCluster.RELATIVE_HUMIDITY_MEASUREMENT.ID: {
+                switch (attributeID) {
+                    case ZigbeeCluster.RELATIVE_HUMIDITY_MEASUREMENT.Attribute.RELATIVE_HUMIDITY_MEASURED_VALUE.ID: {
+                        if (attributeType === ZigbeeCluster.RELATIVE_HUMIDITY_MEASUREMENT.Attribute.RELATIVE_HUMIDITY_MEASURED_VALUE.type) {
+                            value.humidity = parseInt(attributeData, 16);
+                        }
+                    } break;
+                    default: break;
+                }
+            } break;
+            case ZigbeeCluster.TEMP_MEASUREMENT.ID: {
+                switch (attributeID) {
+                    case ZigbeeCluster.TEMP_MEASUREMENT.Attribute.TEMP_MEASURED_VALUE.ID: {
+                        if (attributeType === ZigbeeCluster.TEMP_MEASUREMENT.Attribute.TEMP_MEASURED_VALUE.type) {
+                            value.temperature = parseInt(attributeData, 16);
+                            // TODO Careful with signed int data type
+                        }
+                    } break;
+                    default: break;
+                }
+            } break;
+            case ZigbeeCluster.IAS_ZONE.ID: {
+                switch (attributeID) {
+                    case ZigbeeCluster.IAS_ZONE.Attribute.ZONE_STATUS.ID: {
+                        if (attributeType === ZigbeeCluster.IAS_ZONE.Attribute.ZONE_STATUS.type) {
+                            value.motion = attributeData === '01'
+                        }
+                    } break;
+                    default: break;
+                }
+            } break;
+            case ZigbeeCluster.DOOR_LOCK.ID: {
+                switch (attributeID) {
+                    case ZigbeeCluster.DOOR_LOCK.Attribute.DOOR_STATE.ID: {
+                        if (attributeType === ZigbeeCluster.DOOR_LOCK.Attribute.DOOR_STATE.type) {
+                            value.contact = attributeData === '00'
+                        }
+                    } break;
+                    default: break;
+                }
+            } break;
+            case ZigbeeCluster.POWER_CONFIG.ID: {
+                switch (attributeID) {
+                    case ZigbeeCluster.POWER_CONFIG.Attribute.BATTERY_PERCENTAGE_REMAINING.ID: {
+                        if (attributeType === ZigbeeCluster.POWER_CONFIG.Attribute.BATTERY_PERCENTAGE_REMAINING.type) {
+                            value.battery = parseInt(attributeData, 16);
+                        }
+                    }
+                    default: break;
+                }
+            } break;
+            default: break;
         }
+
         return value;
     };
 

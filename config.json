@@ -1,0 +1,56 @@
+{
+  "staging": {
+    "envName": "staging",
+    "server": {
+      "host": "http://e835f1e4.ngrok.io",
+      "authentication": {
+        "key": ""
+      }
+    },
+    "cloudMQTT": {
+      "host": "m24.cloudmqtt.com",
+      "port": 16032,
+      "authentication": {
+        "username": "bkxttvrf",
+        "password": "x1q_MUb27bLz"
+      }
+    },
+    "hashingSecret": "alpaca",
+    "logPath": "/root/home-hub/log.txt",
+    "gatewayId": "000B57FFFE572517",
+    "runningMode": 0,
+    "mosca": {
+      "username": "doantotnghiep",
+      "password": "datn1234",
+      "key": "",
+      "cert": ""
+    }
+  },
+  "production": {
+    "envName": "staging",
+    "server": {
+      "host": "http://e835f1e4.ngrok.io",
+      "authentication": {
+        "key": ""
+      }
+    },
+    "cloudMQTT": {
+      "host": "m24.cloudmqtt.com",
+      "port": 16032,
+      "authentication": {
+        "username": "bkxttvrf",
+        "password": "x1q_MUb27bLz"
+      }
+    },
+    "hashingSecret": "alpaca",
+    "logPath": "/root/home-hub/log.txt",
+    "gatewayId": "000B57FFFE572517",
+    "runningMode": 0,
+    "mosca": {
+      "username": "doantotnghiep",
+      "password": "datn1234",
+      "key": "",
+      "cert": ""
+    }
+  }
+}

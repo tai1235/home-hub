@@ -9,7 +9,7 @@
 const { createLogger, format, transports } = require('winston');
 const moment = require('moment');
 const path = require('path');
-const config = require('../config');
+const config = require('./config');
 
 class Logger {
     constructor(filename) {

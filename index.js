@@ -1,5 +1,4 @@
 // Dependencies
-const config = require('./config');
 const os = require('os');
 const Coordinator = require('./coordinator/coordinator');
 

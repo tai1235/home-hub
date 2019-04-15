@@ -11,7 +11,7 @@ let Characteristic = require('../../hap').Characteristic;
 let ZigbeeGateway = require('../../coordinator/zigbee/zigbee-gateway');
 let ZigbeeCommand = require('../../coordinator/zigbee/zigbee').ZigbeeCommand;
 let Logger = require('../../libraries/system-log');
-let config = require('../../config');
+let config = require('../../libraries/config');
 
 let logger = new Logger(__filename);
 let zigbeePublisher = new ZigbeeGateway(config.gatewayId);
@@ -32,9 +32,10 @@ zigbeePublisher.start();
 
 class SwitchEndpoint extends Service.Switch {
     constructor(eui64, endpoint) {
-        super(eui64 + '_' + endpoint, endpoint);
+        super(eui64.substr(eui64.length - 6, eui64.length) + '-' + endpoint, endpoint);
         this.eui64 = eui64;
         this.endpoint = endpoint;
+        this.type = EndpointType.SWITCH;
         this.status = { on: false };
         this.getCharacteristic(Characteristic.On)
             .on('set', (value, callback) => {
@@ -55,16 +56,14 @@ class SwitchEndpoint extends Service.Switch {
     }
 
     get name() {
-        return `${this.eui64}_${this.endpoint}`;
+        return this.eui64.substr(this.eui64.length - 6) + '-' + this.endpoint;
     }
 
     updateValue(value) {
-        if (value.on !== undefined) {
-            logger.info('UPDATE characteristic on of ' + this.name + ': ' + value.on);
-            this.status.on = value.on;
-            this.getCharacteristic(Characteristic.On)
-                .updateValue(value.on, undefined);
-        }
+        logger.info('UPDATE characteristic on of ' + this.name + ': ' + value);
+        this.status.on = value;
+        this.getCharacteristic(Characteristic.On)
+            .updateValue(value, undefined);
     }
 
     setValue(value) {
@@ -78,9 +77,10 @@ class SwitchEndpoint extends Service.Switch {
 
 class LightEndpoint extends Service.Lightbulb {
     constructor(eui64, endpoint) {
-        super(eui64 + '_' + endpoint, endpoint);
+        super(eui64.substr(eui64.length - 6, eui64.length) + '-' + endpoint, endpoint);
         this.eui64 = eui64;
         this.endpoint = endpoint;
+        this.type = EndpointType.LIGHT;
         this.status = { on: false, brightness: 0 };
         this.getCharacteristic(Characteristic.On)
             .on('set', (value, callback) => {
@@ -119,7 +119,7 @@ class LightEndpoint extends Service.Lightbulb {
     }
 
     get name() {
-        return `${this.eui64}_${this.endpoint}`;
+        return this.eui64.substr(this.eui64.length - 6) + '-' + this.endpoint;
     }
 
     updateValue(value) {
@@ -153,163 +153,157 @@ class LightEndpoint extends Service.Lightbulb {
 
 class ContactSensorEndpoint extends Service.ContactSensor {
     constructor(eui64, endpoint) {
-        super(eui64 + '_' + endpoint, endpoint);
+        super(eui64.substr(eui64.length - 6, eui64.length) + '-' + endpoint, endpoint);
         this.eui64 = eui64;
         this.endpoint = endpoint;
-        this.status = { state: 1 };
+        this.type = EndpointType.CONTACT_SENSOR;
+        this.status = { contact: 0 };
         this.getCharacteristic(Characteristic.ContactSensorState)
             .on('get', callback => {
-                logger.info('GET characteristic contact sensor state of ' + this.name + ': ' + this.status.state);
-                callback(null, this.status.state)
+                logger.info('GET characteristic contact sensor state of ' + this.name + ': ' + this.status.contact);
+                callback(null, this.status.contact)
             })
     }
 
     get name() {
-        return `${this.eui64}_${this.endpoint}`;
+        return this.eui64.substr(this.eui64.length - 6) + '-' + this.endpoint;
     }
 
     updateValue(value) {
-        if (value.state !== undefined) {
-            logger.info('UPDATE characteristic contact sensor state of ' + this.name + ': ' + value.state);
-            this.status.state = value.state;
-            this.getCharacteristic(Characteristic.ContactSensorState)
-                .updateValue(value.state, undefined);
-        }
+        logger.info('UPDATE characteristic contact sensor state of ' + this.name + ': ' + value);
+        this.status.contact = value;
+        this.getCharacteristic(Characteristic.ContactSensorState)
+            .updateValue(value, undefined);
     }
 }
 
 class MotionSensorEndpoint extends Service.MotionSensor {
     constructor(eui64, endpoint) {
-        super(eui64 + '_' + endpoint, endpoint);
+        super(eui64.substr(eui64.length - 6, eui64.length) + '-' + endpoint, endpoint);
         this.eui64 = eui64;
         this.endpoint = endpoint;
-        this.status = { state: 1 };
+        this.type = EndpointType.MOTION_SENSOR;
+        this.status = { motion: 0 };
         this.getCharacteristic(Characteristic.MotionDetected)
             .on('get', callback => {
-                logger.info('GET characteristic motion detected of ' + this.name + ': ' + this.status.state);
-                callback(null, this.status.state)
+                logger.info('GET characteristic motion detected of ' + this.name + ': ' + this.status.motion);
+                callback(null, this.status.motion)
             })
     }
 
     get name() {
-        return `${this.eui64}_${this.endpoint}`;
+        return this.eui64.substr(this.eui64.length - 6) + '-' + this.endpoint;
     }
 
     updateValue(value) {
-        if (value.state !== undefined) {
-            logger.info('UPDATE characteristic motion detected of ' + this.name + ': ' + value.state);
-            this.status.state = value.state;
-            this.getCharacteristic(Characteristic.MotionDetected)
-                .updateValue(value.state, undefined);
-        }
+        logger.info('UPDATE characteristic motion detected of ' + this.name + ': ' + value);
+        this.status.motion = value;
+        this.getCharacteristic(Characteristic.MotionDetected)
+            .updateValue(value, undefined);
     }
 }
 
 class LightSensorEndpoint extends Service.LightSensor {
     constructor(eui64, endpoint) {
-        super(eui64 + '_' + endpoint, endpoint);
+        super(eui64.substr(eui64.length - 6, eui64.length) + '-' + endpoint, endpoint);
         this.eui64 = eui64;
         this.endpoint = endpoint;
-        this.status = { level: 0 };
+        this.type = EndpointType.LIGHT_SENSOR;
+        this.status = { lux: 0 };
         this.getCharacteristic(Characteristic.CurrentAmbientLightLevel)
             .on('get', callback => {
-                logger.info('GET characteristic current ambient light level of ' + this.name + ': ' + this.status.level);
+                logger.info('GET characteristic current ambient light level of ' + this.name + ': ' + this.status.lux);
                 callback(null, this.status.level)
             })
     }
 
     get name() {
-        return `${this.eui64}_${this.endpoint}`;
+        return this.eui64.substr(this.eui64.length - 6) + '-' + this.endpoint;
     }
 
     updateValue(value) {
-        if (value.level !== undefined) {
-            logger.info('UPDATE characteristic current ambient light level of ' + this.name + ': ' + value.level);
-            this.status.level = value.level;
-            this.getCharacteristic(Characteristic.CurrentAmbientLightLevel)
-                .updateValue(value.level, undefined);
-        }
+        logger.info('UPDATE characteristic current ambient light level of ' + this.name + ': ' + value);
+        this.status.lux = value;
+        this.getCharacteristic(Characteristic.CurrentAmbientLightLevel)
+            .updateValue(value, undefined);
     }
 }
 
 class TemperatureSensorEndpoint extends Service.TemperatureSensor {
     constructor(eui64, endpoint) {
-        super(eui64 + '_' + endpoint, endpoint);
+        super(eui64.substr(eui64.length - 6, eui64.length) + '-' + endpoint, endpoint);
         this.eui64 = eui64;
         this.endpoint = endpoint;
-        this.status = { level: 0 };
+        this.type = EndpointType.TEMPERATURE_SENSOR;
+        this.status = { temperature: 0 };
         this.getCharacteristic(Characteristic.CurrentTemperature)
             .on('get', callback => {
-                logger.info('GET characteristic current temperature of ' + this.name + ': ' + this.status.level);
-                callback(null, this.status.level)
+                logger.info('GET characteristic current temperature of ' + this.name + ': ' + this.status.temperature);
+                callback(null, this.status.temperature)
             })
     }
 
     get name() {
-        return `${this.eui64}_${this.endpoint}`;
+        return this.eui64.substr(this.eui64.length - 6) + '-' + this.endpoint;
     }
 
     updateValue(value) {
-        if (value.level !== undefined) {
-            logger.info('UPDATE characteristic current temperature of ' + this.name + ': ' + value.level);
-            this.status.level = value.level;
-            this.getCharacteristic(Characteristic.CurrentTemperature)
-                .updateValue(value.level, undefined);
-        }
+        logger.info('UPDATE characteristic current temperature of ' + this.name + ': ' + value);
+        this.status.temperature = value;
+        this.getCharacteristic(Characteristic.CurrentRelativeHumidity)
+            .updateValue(value, undefined);
     }
 }
 
 class HumiditySensorEndpoint extends Service.HumiditySensor {
     constructor(eui64, endpoint) {
-        super(eui64 + '_' + endpoint, endpoint);
+        super(eui64.substr(eui64.length - 6, eui64.length) + '-' + endpoint, endpoint);
         this.eui64 = eui64;
         this.endpoint = endpoint;
-        this.status = {level: 0};
+        this.type = EndpointType.HUMIDITY_SENSOR;
+        this.status = { humidity: 0 };
         this.getCharacteristic(Characteristic.CurrentRelativeHumidity)
             .on('get', callback => {
-                logger.info('GET characteristic current relative humidity of ' + this.name + ': ' + this.status.level);
-                callback(null, this.status.level)
+                logger.info('GET characteristic current relative humidity of ' + this.name + ': ' + this.status.humidity);
+                callback(null, this.status.humidity)
             })
     }
 
     get name() {
-        return `${this.eui64}_${this.endpoint}`;
+        return this.eui64.substr(this.eui64.length - 6) + '-' + this.endpoint;
     }
 
     updateValue(value) {
-        if (value.level !== undefined) {
-            logger.info('UPDATE characteristic current relative humidity of ' + this.name + ': ' + value.level);
-            this.status.level = value.level;
-            this.getCharacteristic(Characteristic.CurrentRelativeHumidity)
-                .updateValue(value.level, undefined);
-        }
+        logger.info('UPDATE characteristic current relative humidity of ' + this.name + ': ' + value);
+        this.status.humidity = value;
+        this.getCharacteristic(Characteristic.CurrentRelativeHumidity)
+            .updateValue(value, undefined);
     }
 }
 
 class BatteryEndpoint extends Service.BatteryService {
     constructor(eui64, endpoint) {
-        super(eui64 + '_' + endpoint, endpoint);
+        super(eui64.substr(eui64.length - 6, eui64.length) + '-' + endpoint, endpoint);
         this.eui64 = eui64;
         this.endpoint = endpoint;
-        this.status = {level: 0};
+        this.type = EndpointType.BATTERY;
+        this.status = { battery: 100 };
         this.getCharacteristic(Characteristic.BatteryLevel)
             .on('get', callback => {
-                logger.info('GET characteristic battery level of ' + this.name + ': ' + this.status.level);
-                callback(null, this.status.level)
+                logger.info('GET characteristic battery level of ' + this.name + ': ' + this.status.battery);
+                callback(null, this.status.battery)
             })
     }
 
     get name() {
-        return `${this.eui64}_${this.endpoint}`;
+        return this.eui64.substr(this.eui64.length - 6) + '-' + this.endpoint;
     }
 
     updateValue(value) {
-        if (value.level !== undefined) {
-            logger.info('UPDATE characteristic battery level of ' + this.name + ': ' + value.level);
-            this.status.level = value.level;
-            this.getCharacteristic(Characteristic.BatteryLevel)
-                .updateValue(value.level, undefined);
-        }
+        logger.info('UPDATE characteristic battery level of ' + this.name + ': ' + value);
+        this.status.battery = value;
+        this.getCharacteristic(Characteristic.BatteryLevel)
+            .updateValue(value, undefined);
     }
 }
 

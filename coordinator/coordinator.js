@@ -8,7 +8,7 @@
 // Dependencies
 const ZigbeeGateway = require('./zigbee/zigbee-gateway');
 const Logger = require('../libraries/system-log');
-const config = require('../config');
+const config = require('../libraries/config');
 const DeviceManager = require('../controller/device-manager/device-manager');
 const storage = require('node-persist');
 const DatabaseManager = require('../controller/database-manager/database-manager');

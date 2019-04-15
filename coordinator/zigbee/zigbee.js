@@ -74,34 +74,40 @@ const ZigbeeCluster = {
             StopWithOnOff: '07'
         }
     },
-    LUMINANCE_MEASUREMENT: {
+    ILLUM_MEASUREMENT: {
         ID: '0x0400',
         Attribute: {
-
+            ILLUM_MEASURED_VALUE: { ID: '0000', type: '21' }
         }
     },
-    TEMPERATURE_MEASUREMENT: {
+    TEMP_MEASUREMENT: {
         ID: '0x0402',
         Attribute: {
-
+            TEMP_MEASURED_VALUE: { ID: '0000', type: '29' }
         }
     },
-    HUMIDITY_MEASUREMENT: {
+    RELATIVE_HUMIDITY_MEASUREMENT: {
         ID: '0x0405',
         Attribute: {
-
+            RELATIVE_HUMIDITY_MEASURED_VALUE: { ID: '0000', type: '21' }
         }
     },
     IAS_ZONE: {
         ID: '0x0500',
         Attribute: {
-
+            ZONE_STATUS: { ID: '0200', type: '19' }
         }
     },
     DOOR_LOCK: {
         ID: '0x0101',
         Attribute: {
-
+            DOOR_STATE: { ID: '0300', type: '19' }
+        }
+    },
+    POWER_CONFIG: {
+        ID: '0x0001',
+        Attribute: {
+            BATTERY_PERCENTAGE_REMAINING: { ID: '2100', type: '20' }
         }
     }
 };

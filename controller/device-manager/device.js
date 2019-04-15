@@ -49,7 +49,7 @@ class Device extends Accessory {
     }
 
     getEndpoint(endpoint) {
-        let endpointName = this.eui64 + '_' + endpoint;
+        let endpointName = this.eui64.substr(this.eui64.length - 6) + '-' + endpoint;
         for (let i in this.endpoints) {
             if (this.endpoints[i].name === endpointName) {
                 return this.endpoints[i];
@@ -58,7 +58,7 @@ class Device extends Accessory {
     }
 
     getEndpointName(endpoint) {
-        return this.eui64 + '_' + endpoint;
+        return this.eui64.substr(this.eui64.length - 6) + '-' + endpoint;
     }
 
     addInformation(serialNumber, manufacturer, model) {
@@ -130,9 +130,51 @@ class Device extends Accessory {
     }
 
     updateEndpointValue(value, endpoint) {
-        if (value.on !== undefined || value.level !== undefined)
-            if (this.getEndpoint(endpoint) !== undefined)
-                this.getEndpoint(endpoint).updateValue(value);
+        if (this.getEndpoint(endpoint) !== undefined) {
+            switch (this.getEndpoint(endpoint).type) {
+                case EndpointType.SWITCH: {
+                    if (value.on !== undefined) {
+                        this.getEndpoint(endpoint).updateValue(value.on);
+                    }
+                } break;
+                case EndpointType.LIGHT: {
+                    if (value.on !== undefined || value.brightness !== undefined) {
+                        this.getEndpoint(endpoint).updateValue(value);
+                    }
+                } break;
+                case EndpointType.CONTACT_SENSOR: {
+                    if (value.contact !== undefined) {
+                        this.getEndpoint(endpoint).updateValue(value.contact);
+                    }
+                } break;
+                case EndpointType.MOTION_SENSOR: {
+                    if (value.motion !== undefined) {
+                        this.getEndpoint(endpoint).updateValue(value.motion);
+                    }
+                } break;
+                case EndpointType.LIGHT_SENSOR: {
+                    if (value.lux !== undefined) {
+                        this.getEndpoint(endpoint).updateValue(value.lux);
+                    }
+                } break;
+                case EndpointType.TEMPERATURE_SENSOR: {
+                    if (value.temperature !== undefined) {
+                        this.getEndpoint(endpoint).updateValue(value.temperature);
+                    }
+                } break;
+                case EndpointType.HUMIDITY_SENSOR: {
+                    if (value.humidity !== undefined) {
+                        this.getEndpoint(endpoint).updateValue(value.humidity);
+                    }
+                } break;
+                case EndpointType.BATTERY: {
+                    if (value.battery !== undefined) {
+                        this.getEndpoint(endpoint).updateValue(value.battery);
+                    }
+                } break;
+                default: break;
+            }
+        }
     }
 
     setEndpointValue(value, endpoint) {
