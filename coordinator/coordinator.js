@@ -12,6 +12,7 @@ const config = require('../libraries/config');
 const DeviceManager = require('../controller/device-manager/device-manager');
 const storage = require('node-persist');
 const DatabaseManager = require('../controller/database-manager/database-manager');
+const LocalServer = require('./local/local-server');
 const ServerCommunicator = require('./server/server-communicator');
 const HardwareInterface = require('./hardware/hardware-interface');
 const ZigbeeCommand = require('./zigbee/zigbee').ZigbeeCommand;
@@ -23,21 +24,13 @@ class Coordinator {
         this.zigbeeGateway = new ZigbeeGateway(config.gatewayId);
         this.deviceManager = new DeviceManager(mac);
         this.databaseManager = new DatabaseManager();
-        // this.serverCommunicator = new ServerCommunicator({
-        //     server: config.server,
-        //     cloudMQTT: config.cloudMQTT
-        // });
         this.hardwareInterface = new HardwareInterface();
+        this.localServer = new LocalServer();
     }
 
     // Device's events from zigbee gateway
     handleZigbeeDeviceJoined() {
         this.zigbeeGateway.on('zigbee-device-joined', params => {
-            logger.info(JSON.stringify({
-                eui64: params.eui64,
-                endpoint: params.endpoint,
-                type: params.type
-            }));
             // Create and store new device to cache
             this.deviceManager.handleDeviceJoined(params.eui64, params.endpoint, params.type);
             // Store device's data to DB
@@ -219,35 +212,40 @@ class Coordinator {
                 // });
                 // Initiate the hardware interface
                 this.hardwareInterface.start();
+                this.localServer.start();
             });
         } catch (e) {
             logger.error(e.message);
         }
-
     }
 
     process() {
-        // Handle events from Zigbee gateway
-        this.handleZigbeeDeviceJoined();
-        this.handleZigbeeDeviceLeft();
-        this.handleZigbeeDeviceStatus();
-        // Handle events from Database
-        this.handleDatabaseDeviceAdded();
-        this.handleDatabaseDeviceOffline();
-        this.handleDatabaseDeviceOnline();
-        this.handleDatabaseDeviceRemoved();
-        // Handle events from Server
-        this.handleServerDeviceRemove();
-        this.handleServerDeviceControl();
-        this.handleServerRuleAdd();
-        this.handleServerRuleRemove();
-        this.handleServerRuleEnable();
-        this.handleServerRuleActive();
-        this.handleServerGroupAdd();
-        this.handleServerGroupRemove();
-        this.handleServerGroupEnable();
-        // Handle events from Hardware
-        this.handleHardwareButtonRelease();
+        try {
+            // Handle events from Zigbee gateway
+            this.handleZigbeeDeviceJoined();
+            this.handleZigbeeDeviceLeft();
+            this.handleZigbeeDeviceStatus();
+            // Handle events from Database
+            this.handleDatabaseDeviceAdded();
+            this.handleDatabaseDeviceOffline();
+            this.handleDatabaseDeviceOnline();
+            this.handleDatabaseDeviceRemoved();
+            // Handle events from Server
+            this.handleServerDeviceRemove();
+            this.handleServerDeviceControl();
+            this.handleServerRuleAdd();
+            this.handleServerRuleRemove();
+            this.handleServerRuleEnable();
+            this.handleServerRuleActive();
+            this.handleServerGroupAdd();
+            this.handleServerGroupRemove();
+            this.handleServerGroupEnable();
+            // Handle events from Hardware
+            this.handleHardwareButtonRelease();
+        } catch (e) {
+            logger.error(e.message);
+        }
+
     }
 }
 

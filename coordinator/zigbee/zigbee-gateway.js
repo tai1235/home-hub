@@ -190,12 +190,13 @@ class ZigbeeGateway extends EventEmitter {
     }
 
      static _parseClusterValue(clusterId, commandData) {
-        let value = {};
         if (commandData === undefined)
-            return value;
+            return {};
+
+        let value = {};
         let attributeID = commandData.substr(2, 4);
         let attributeType = commandData.substr(8, 2);
-        let attributeData = commandData.substr(10, commandData.length - 12); // Ignore 2 last bytes
+        let attributeData = commandData.substr(10).match(/.{1,2}(?=(.{2})+(?!.))|.{1,2}$/g).reverse().join('');
 
         switch (clusterId) {
             // Using switch for each ClusterID for addition of Attribute in future
@@ -220,7 +221,7 @@ class ZigbeeGateway extends EventEmitter {
                 switch (attributeID) {
                     case ZigbeeCluster.ON_OFF.Attribute.ON_OFF.ID: {
                         if (attributeType === ZigbeeCluster.ON_OFF.Attribute.ON_OFF.type) {
-                            value.on = attributeData === '01';
+                            value.on = parseInt(attributeData, 16) === 1;
                         }
                     } break;
                     case ZigbeeCluster.ON_OFF.Attribute.ON_OFF_CLUSTER_CLUSTER_REVISION_SERVER.ID: {
@@ -267,7 +268,7 @@ class ZigbeeGateway extends EventEmitter {
                 switch (attributeID) {
                     case ZigbeeCluster.IAS_ZONE.Attribute.ZONE_STATUS.ID: {
                         if (attributeType === ZigbeeCluster.IAS_ZONE.Attribute.ZONE_STATUS.type) {
-                            value.motion = attributeData === '01'
+                            value.motion = parseInt(attributeData, 16) === 1;
                         }
                     } break;
                     default: break;
@@ -277,7 +278,7 @@ class ZigbeeGateway extends EventEmitter {
                 switch (attributeID) {
                     case ZigbeeCluster.DOOR_LOCK.Attribute.DOOR_STATE.ID: {
                         if (attributeType === ZigbeeCluster.DOOR_LOCK.Attribute.DOOR_STATE.type) {
-                            value.contact = attributeData === '00'
+                            value.contact = parseInt(attributeData, 16) === 0;
                         }
                     } break;
                     default: break;
@@ -289,7 +290,7 @@ class ZigbeeGateway extends EventEmitter {
                         if (attributeType === ZigbeeCluster.POWER_CONFIG.Attribute.BATTERY_PERCENTAGE_REMAINING.type) {
                             value.battery = parseInt(attributeData, 16);
                         }
-                    }
+                    } break;
                     default: break;
                 }
             } break;
@@ -300,7 +301,7 @@ class ZigbeeGateway extends EventEmitter {
     };
 
     static hex2string(hex) {
-        let input = hex.toString();//force conversion
+        let input = hex.toString(); //force conversion
         let str = '';
         for (let i = 0; (i < input.length && input.substr(i, 2) !== '00'); i += 2)
             str += String.fromCharCode(parseInt(input.substr(i, 2), 16));

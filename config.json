@@ -22,8 +22,7 @@
     "mosca": {
       "username": "doantotnghiep",
       "password": "datn1234",
-      "key": "",
-      "cert": ""
+      "port": 8883
     }
   },
   "production": {
@@ -47,10 +46,9 @@
     "gatewayId": "000B57FFFE572517",
     "runningMode": 0,
     "mosca": {
+      "port": 8883,
       "username": "doantotnghiep",
-      "password": "datn1234",
-      "key": "",
-      "cert": ""
+      "password": "datn1234"
     }
   }
 }
