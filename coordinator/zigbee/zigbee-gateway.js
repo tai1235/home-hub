@@ -34,9 +34,6 @@ class ZigbeeGateway extends EventEmitter {
             port: 1883,
             protocol: 'mqtt'
         });
-        // Form network
-        let command = ZigbeeGateway.createZigbeeCommand(ZigbeeCommand.Plugin.FormNetwork);
-        this.publish(command);
     }
 
     onConnect(callback) {
@@ -47,13 +44,10 @@ class ZigbeeGateway extends EventEmitter {
                 'gw/' + this.eui64 + '/' + SubscribeTopics.DeviceJoined,
                 'gw/' + this.eui64 + '/' + SubscribeTopics.DeviceLeft,
                 'gw/' + this.eui64 + '/' + SubscribeTopics.ZclResponse
-            ], (err) => {
-                if (err)
-                    logger.error("Lost connection to Zigbee Gateway");
-                else {
-                    logger.debug("Subscribe successfully");
-                }
-            });
+            ]);
+            // Form network
+            let command = ZigbeeGateway.createZigbeeCommand(ZigbeeCommand.Plugin.FormNetwork);
+            this.publish(command);
             callback()
         })
     }
@@ -196,7 +190,13 @@ class ZigbeeGateway extends EventEmitter {
         let value = {};
         let attributeID = commandData.substr(2, 4);
         let attributeType = commandData.substr(8, 2);
-        let attributeData = commandData.substr(10).match(/.{1,2}(?=(.{2})+(?!.))|.{1,2}$/g).reverse().join('');
+        let attributeData = commandData.substr(10);
+
+        if (attributeData.length >= 2) {
+            attributeData = attributeData.match(/.{1,2}(?=(.{2})+(?!.))|.{1,2}$/g).reverse().join('');
+        } else {
+            return {};
+        }
 
         switch (clusterId) {
             // Using switch for each ClusterID for addition of Attribute in future
