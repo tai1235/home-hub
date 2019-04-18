@@ -73,7 +73,7 @@ class ZigbeeGateway extends EventEmitter {
                     let params = {
                         eui64: messageData.deviceEndpoint.eui64,
                         endpoint: messageData.deviceEndpoint.endpoint,
-                        value: ZigbeeGateway._parseClusterValue(messageData.clusterId, messageData.commandData)
+                        value: ZigbeeGateway._parseClusterValue(messageData.clusterId, messageData.commandData, messageData.commandId)
                     };
                     this.emit('zigbee-device-response', params);
                 } break;
@@ -183,15 +183,22 @@ class ZigbeeGateway extends EventEmitter {
         return JSON.stringify(payload);
     }
 
-     static _parseClusterValue(clusterId, commandData) {
+     static _parseClusterValue(clusterId, commandData, commandId) {
         if (commandData === undefined)
             return {};
 
         let value = {};
-        let attributeID = commandData.substr(2, 4);
+
+        // Get attribute id, type and data
+        let attributeID = commandData.substr(4, 2) + commandData.substr(2, 2);
         let attributeType = commandData.substr(8, 2);
         let attributeData = commandData.substr(10);
+        if (commandId === '0x0A') {
+            attributeType = commandData.substr(6, 2);
+            attributeData = commandData.substr(8);
+        }
 
+        // Validate attribute data
         if (attributeData.length >= 2) {
             attributeData = attributeData.match(/.{1,2}(?=(.{2})+(?!.))|.{1,2}$/g).reverse().join('');
         } else {
@@ -205,13 +212,11 @@ class ZigbeeGateway extends EventEmitter {
                     case ZigbeeCluster.BASIC.Attribute.MANUFACTURER_NAME.ID: {
                         if (attributeType === ZigbeeCluster.BASIC.Attribute.MANUFACTURER_NAME.type) {
                             value.manufacturer = ZigbeeGateway.hex2string(attributeData);
-                            logger.debug(value.manufacturer);
                         }
                     } break;
                     case ZigbeeCluster.BASIC.Attribute.MODEL_IDENTIFIER.ID:{
                         if (attributeType === ZigbeeCluster.BASIC.Attribute.MODEL_IDENTIFIER.type) {
                             value.model = ZigbeeGateway.hex2string(attributeData);
-                            logger.debug(value.model);
                         }
                     } break;
                     default: break;
@@ -221,11 +226,20 @@ class ZigbeeGateway extends EventEmitter {
                 switch (attributeID) {
                     case ZigbeeCluster.ON_OFF.Attribute.ON_OFF.ID: {
                         if (attributeType === ZigbeeCluster.ON_OFF.Attribute.ON_OFF.type) {
-                            value.on = parseInt(attributeData, 16) === 1;
+                            if (commandId === '0x0A') {
+                                if (parseInt(attributeData, 16) === 0) {
+                                    value.act = 0;
+                                }
+                            } else {
+                                value.on = parseInt(attributeData, 16) === 1;
+                            }
                         }
                     } break;
-                    case ZigbeeCluster.ON_OFF.Attribute.ON_OFF_CLUSTER_CLUSTER_REVISION_SERVER.ID: {
-
+                    case ZigbeeCluster.ON_OFF.Attribute.PEBBLE.ID: {
+                        if (attributeType === ZigbeeCluster.ON_OFF.Attribute.PEBBLE.type) {
+                            value.act = parseInt(attributeData);
+                            if (value.act === 80) value.act = 5;
+                        }
                     } break;
                     default: break;
                 }

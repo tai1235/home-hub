@@ -33,7 +33,8 @@ const ZigbeeCluster = {
         ID: '0x0006',
         Attribute: {
             ON_OFF: { ID: '0000',  type: '10' },
-            ON_OFF_CLUSTER_CLUSTER_REVISION_SERVER: { ID: 'FFFD', type: '21' }
+            ON_OFF_CLUSTER_CLUSTER_REVISION_SERVER: { ID: 'FFFD', type: '21' },
+            PEBBLE: { ID: '8000', type: '20' }
         },
         Command: {
             On: '01',
@@ -95,19 +96,19 @@ const ZigbeeCluster = {
     IAS_ZONE: {
         ID: '0x0500',
         Attribute: {
-            ZONE_STATUS: { ID: '0200', type: '19' }
+            ZONE_STATUS: { ID: '0002', type: '19' }
         }
     },
     DOOR_LOCK: {
         ID: '0x0101',
         Attribute: {
-            DOOR_STATE: { ID: '0300', type: '19' }
+            DOOR_STATE: { ID: '0003', type: '19' }
         }
     },
     POWER_CONFIG: {
         ID: '0x0001',
         Attribute: {
-            BATTERY_PERCENTAGE_REMAINING: { ID: '2100', type: '20' }
+            BATTERY_PERCENTAGE_REMAINING: { ID: '0021', type: '20' }
         }
     }
 };

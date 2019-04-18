@@ -1570,9 +1570,9 @@ Characteristic.ProgrammableSwitchEvent = function() {
   Characteristic.call(this, 'Programmable Switch Event', '00000073-0000-1000-8000-0026BB765291');
   this.setProps({
     format: Characteristic.Formats.UINT8,
-    maxValue: 2,
+    maxValue: 5,
     minValue: 0,
-    validValues: [0,1,2],
+    validValues: [0,1,2,3,4,5],
     perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
   });
   this.eventOnlyCharacteristic = true; //Manual addition.
@@ -1587,6 +1587,9 @@ Characteristic.ProgrammableSwitchEvent.UUID = '00000073-0000-1000-8000-0026BB765
 Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS = 0;
 Characteristic.ProgrammableSwitchEvent.DOUBLE_PRESS = 1;
 Characteristic.ProgrammableSwitchEvent.LONG_PRESS = 2;
+Characteristic.ProgrammableSwitchEvent.TRIPLE_PRESS = 3;
+Characteristic.ProgrammableSwitchEvent.QUADRUPLE_PRESS = 4;
+Characteristic.ProgrammableSwitchEvent.QUINTUPLE_PRESS = 5;
 
 /**
  * Characteristic "Relative Humidity Dehumidifier Threshold"

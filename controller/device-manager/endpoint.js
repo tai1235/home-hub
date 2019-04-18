@@ -25,7 +25,7 @@ const EndpointType = {
     TEMPERATURE_SENSOR: '0x0302',
     HUMIDITY_SENSOR: '0x0301',
     BATTERY: '0x0017',
-    PEBBLE: '',
+    PEBBLE: '0x0104',
 };
 
 zigbeePublisher.start();
@@ -307,6 +307,32 @@ class BatteryEndpoint extends Service.BatteryService {
     }
 }
 
+class PebbleEndpoint extends Service.StatelessProgrammableSwitch {
+    constructor(eui64, endpoint) {
+        super(eui64.substr(eui64.length - 6, eui64.length) + '-' + endpoint, endpoint);
+        this.eui64 = eui64;
+        this.endpoint = endpoint;
+        this.type = EndpointType.PEBBLE;
+        this.status = { act: 100 };
+        this.getCharacteristic(Characteristic.ProgrammableSwitchEvent)
+            .on('get', callback => {
+                logger.info('GET characteristic programmable switch event of ' + this.name + ': ' + this.status.act);
+                callback(null, this.status.act)
+            })
+    }
+
+    get name() {
+        return this.eui64.substr(this.eui64.length - 6) + '-' + this.endpoint;
+    }
+
+    updateValue(value) {
+        logger.info('UPDATE characteristic programmable switch event of ' + this.name + ': ' + value);
+        this.status.act = value;
+        this.getCharacteristic(Characteristic.ProgrammableSwitchEvent)
+            .updateValue(value, undefined);
+    }
+}
+
 module.exports = {
     EndpointType,
     SwitchEndpoint,
@@ -316,5 +342,6 @@ module.exports = {
     LightSensorEndpoint,
     TemperatureSensorEndpoint,
     HumiditySensorEndpoint,
-    BatteryEndpoint
+    BatteryEndpoint,
+    PebbleEndpoint
 };

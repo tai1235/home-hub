@@ -26,7 +26,7 @@ const DeviceType = {
 // Device class
 class Device extends Accessory {
     constructor(eui64, endpoint, type, serialNumber = '', manufacturer = '', model = '') {
-        super(eui64, uuid.generate('hap-nodejs:accessories:' + type + eui64));
+        super(eui64.substr(eui64.length - 6), uuid.generate('hap-nodejs:accessories:' + type + eui64));
         this.eui64 = eui64;
         this.type = type;
         this.endpoints = [];
@@ -114,6 +114,11 @@ class Device extends Accessory {
                 this.addService(newEndpoint);
                 this.endpoints.push(newEndpoint);
             } break;
+            case EndpointType.PEBBLE: {
+                let newEndpoint = new Endpoint.PebbleEndpoint(this.eui64, endpoint);
+                this.addService(newEndpoint);
+                this.endpoints.push(newEndpoint);
+            } break;
             default: break;
         }
     }
@@ -170,6 +175,11 @@ class Device extends Accessory {
                 case EndpointType.BATTERY: {
                     if (value.battery !== undefined) {
                         this.getEndpoint(endpoint).updateValue(value.battery);
+                    }
+                } break;
+                case EndpointType.PEBBLE: {
+                    if (value.act !== undefined) {
+                        this.getEndpoint(endpoint).updateValue(value.act);
                     }
                 } break;
                 default: break;
