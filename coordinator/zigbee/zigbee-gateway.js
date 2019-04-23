@@ -87,7 +87,7 @@ class ZigbeeGateway extends EventEmitter {
         this.client.publish(topic, message);
     }
 
-    static createZigbeeCommand(cmd, params, postTimeDelay = 0) {
+    static createZigbeeCommand(cmd, params = {}, postTimeDelay = 0) {
         let payload = {};
         payload.commands = [];
         switch (cmd) {
@@ -237,8 +237,9 @@ class ZigbeeGateway extends EventEmitter {
                     } break;
                     case ZigbeeCluster.ON_OFF.Attribute.PEBBLE.ID: {
                         if (attributeType === ZigbeeCluster.ON_OFF.Attribute.PEBBLE.type) {
-                            value.act = parseInt(attributeData);
-                            if (value.act === 80) value.act = 5;
+                            if (parseInt(attributeData) === 2) {
+                                value.act = 1;
+                            }
                         }
                     } break;
                     default: break;

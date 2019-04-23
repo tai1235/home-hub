@@ -313,12 +313,6 @@ class PebbleEndpoint extends Service.StatelessProgrammableSwitch {
         this.eui64 = eui64;
         this.endpoint = endpoint;
         this.type = EndpointType.PEBBLE;
-        this.status = { act: 100 };
-        this.getCharacteristic(Characteristic.ProgrammableSwitchEvent)
-            .on('get', callback => {
-                logger.info('GET characteristic programmable switch event of ' + this.name + ': ' + this.status.act);
-                callback(null, this.status.act)
-            })
     }
 
     get name() {
@@ -327,7 +321,6 @@ class PebbleEndpoint extends Service.StatelessProgrammableSwitch {
 
     updateValue(value) {
         logger.info('UPDATE characteristic programmable switch event of ' + this.name + ': ' + value);
-        this.status.act = value;
         this.getCharacteristic(Characteristic.ProgrammableSwitchEvent)
             .updateValue(value, undefined);
     }
