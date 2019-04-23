@@ -15,17 +15,30 @@ const DatabaseManager = require('../controller/database-manager/database-manager
 const LocalServer = require('./local/local-server');
 const ServerCommunicator = require('./server/server-communicator');
 const HardwareInterface = require('./hardware/hardware-interface');
+const helpers = require('../libraries/helpers');
 const ZigbeeCommand = require('./zigbee/zigbee').ZigbeeCommand;
+const { Commands, CommandData } = require('../controller/command-manager/command-manager');
 
 const logger = new Logger(__filename);
 
 class Coordinator {
     constructor(mac) {
+        this.macAddress = mac;
         this.zigbeeGateway = new ZigbeeGateway(config.gatewayId);
         this.deviceManager = new DeviceManager(mac);
         this.databaseManager = new DatabaseManager();
         this.hardwareInterface = new HardwareInterface();
         this.localServer = new LocalServer();
+        this.requestHandler = {
+            devices: this._handleDeviceRequests,
+            rules: this._handleRuleRequests,
+            groups: this._handleGroupRequests
+        };
+        this.responseHandler = {
+            devices: this._handleDeviceResponses,
+            rules: this._handleRuleResponses,
+            groups: this._handleGroupResponses
+        };
     }
 
     // Device's events from zigbee gateway
@@ -87,84 +100,6 @@ class Coordinator {
         })
     }
 
-    // Device's events from server
-    handleServerDeviceRemove() {
-        // Listen event from server
-
-        // Handle event
-        // this.deviceManager.handleDeviceRemove(eui64)
-    }
-
-    handleServerDeviceControl() {
-        // Listen event from server
-
-        // Handle device control
-        // this.deviceManager.handleDeviceControl(params.value, params.eui64, params.endpoint);
-    }
-
-    handleServerRuleAdd() {
-        // Handle rule add
-
-        // Store rule's data
-        this.databaseManager.handleRuleAdd();
-
-        // Send response to server
-    }
-
-    handleServerRuleRemove() {
-        // Handle rule remove
-
-        // Update database
-        this.databaseManager.handleRuleRemove();
-
-        // Send response to server
-    }
-
-    handleServerRuleActive() {
-        // Handle rule active
-
-        // Update database
-        this.databaseManager.handleRuleActive()
-
-        // Send response to server
-    }
-
-    handleServerRuleEnable() {
-        // Handle rule enable
-
-        // Update database
-        this.databaseManager.handleRuleEnable()
-
-        // Send response to server
-    }
-
-    handleServerGroupAdd() {
-        // Handle group add
-
-        // Update database
-        this.databaseManager.handleGroupAdd()
-
-        // Send response to server
-    }
-
-    handleServerGroupRemove() {
-        // Handle group remove
-
-        // Update database
-        this.databaseManager.handleGroupRemove()
-
-        // Send response to server
-    }
-
-    handleServerGroupEnable() {
-        // Handle group enable
-
-        // Update database
-        this.databaseManager.handleGroupEnable()
-
-        // Send response to server
-    }
-
     handleHardwareButtonRelease() {
         this.hardwareInterface.on('hardware-button-release', time => {
             switch (time) {
@@ -182,6 +117,92 @@ class Coordinator {
                 } break;
             }
         })
+    }
+
+    handleLocalRequest() {
+        this.localServer.on('local-request-received', (id, message) => {
+            let parsedMessage = JSON.parse(message);
+            this.requestHandler[parsedMessage.type](id, parsedMessage.action, parsedMessage.data);
+        })
+    }
+
+
+    handleLocalResponse() {
+        this.localServer.on('local-response-received', (id, message) => {
+            let parsedMessage = JSON.parse(message);
+            this.responseHandler[parsedMessage.type](id, parsedMessage.action, parsedMessage.data);
+        })
+    }
+
+    _handleDeviceRequests(id, action, data) {
+        switch (action) {
+            case 'search': {
+                // let parsedData = CommandData.Devices.CommandSearch.parseData(data);
+                // let response;
+                // if (parsedData.result !== Commands.StatusCode.SUCCESS) {
+                //     response = CommandData.Devices.CommandSearch.createResponse(
+                //         parsedData.result, 'Invalid data content', {}
+                //     );
+                //     this.localServer.sendResponse(id, response);
+                //     return;
+                // }
+                // if (parsedData.data.mac !== this.macAddress) {
+                //     response = CommandData.Devices.CommandSearch.createResponse(
+                //         Commands.StatusCode.ACTION_FAILED, 'Mac address not recognized', {}
+                //     );
+                //     this.localServer.sendResponse(response);
+                //     return;
+                // }
+                // if (parsedData.data.act === 1) {
+                //     let zigbeeCommand = ZigbeeGateway.createZigbeeCommand(ZigbeeCommand.Plugin.PermitJoin);
+                //     let duration = 100000;
+                //     this.zigbeeGateway.publish(zigbeeCommand);
+                //     if (this.deviceSearchTimer) {
+                //         clearTimeout(this.deviceSearchTimer);
+                //     }
+                //     response = CommandData.Devices.CommandSearch.createResponse(
+                //         Commands.StatusCode.SUCCESS, 'OK', {...data, duration}
+                //     );
+                //     this.localServer.sendResponse(id, response);
+                //     this.deviceSearchTimer = setTimeout(() => {
+                //
+                //     }, duration)
+                // } else {
+                //     if (this.deviceSearchTimer) {
+                //         clearTimeout(this.deviceSearchTimer);
+                //     }
+                //     let zigbeeCommand = ZigbeeGateway.createZigbeeCommand(ZigbeeCommand.Plugin.PermitStopJoin);
+                //     this.zigbeeGateway.publish(zigbeeCommand);
+                //     response = CommandData.Devices.CommandSearch.createResponse(
+                //         Commands.StatusCode.SUCCESS, 'OK', {...data, duration: 0}
+                //     );
+                //     this.localServer.sendResponse(helpers.createRandomString(10), response);
+                // }
+            } break;
+            case '': {
+
+            } break;
+        }
+    }
+
+    _handleRuleRequests(id, action, data) {
+
+    }
+
+    _handleGroupRequests(id, action, data) {
+
+    }
+
+    _handleDeviceResponses(id, action, data) {
+
+    }
+
+    _handleRuleResponses(id, action, data) {
+
+    }
+
+    _handleGroupResponses(id, action, data) {
+
     }
 
     start() {
@@ -230,16 +251,9 @@ class Coordinator {
             this.handleDatabaseDeviceOffline();
             this.handleDatabaseDeviceOnline();
             this.handleDatabaseDeviceRemoved();
-            // Handle events from Server
-            this.handleServerDeviceRemove();
-            this.handleServerDeviceControl();
-            this.handleServerRuleAdd();
-            this.handleServerRuleRemove();
-            this.handleServerRuleEnable();
-            this.handleServerRuleActive();
-            this.handleServerGroupAdd();
-            this.handleServerGroupRemove();
-            this.handleServerGroupEnable();
+            // Handle events from Local
+            this.handleLocalRequest();
+            this.handleLocalResponse();
             // Handle events from Hardware
             this.handleHardwareButtonRelease();
         } catch (e) {
