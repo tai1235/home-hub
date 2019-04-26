@@ -18,7 +18,7 @@ let zigbeePublisher = new ZigbeeGateway(config.gatewayId);
 
 const EndpointType = {
     SWITCH: '0x0100',
-    LIGHT: '0x0103',
+    LIGHT: '0x0101',
     CONTACT_SENSOR: '0x000A',
     MOTION_SENSOR: '0x0403',
     LIGHT_SENSOR: '0x0106',

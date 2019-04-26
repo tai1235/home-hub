@@ -20,10 +20,15 @@ class LocalServer extends EventEmitter {
         this.port = config.mosca.port;
         this.user = config.mosca.username;
         this.password = config.mosca.password;
-        this.topics = {
-            request: 'user/' + this.user + '/request/',
-            response: 'user/' + this.user + '/response',
-            status: 'user/' + this.user + '/status/'
+        this.hubTopics = {
+            request: 'user/' + this.user + '/hub/request/',
+            response: 'user/' + this.user + '/hub/response/',
+            status: 'user/' + this.user + '/hub/status/'
+        };
+        this.appTopics = {
+            request: 'user/' + this.user + '/app/request/',
+            response: 'user/' + this.user + '/app/response/',
+            control: 'user/' + this.user + '/app/control/'
         };
         this.authenticate = (client, username, password, callback) => {
             let authorized = (username === this.user && password.toString() === this.password);
@@ -59,7 +64,10 @@ class LocalServer extends EventEmitter {
             });
             this.client.on('connect', () => {
                 logger.debug('Connected to mosca broker');
-                this.client.subscribe(this.topics.request + '+');
+                this.client.subscribe([
+                    this.appTopics.request + '+',
+                    this.appTopics.control + '+'
+                ]);
                 this.process();
             })
         });
@@ -80,17 +88,17 @@ class LocalServer extends EventEmitter {
     }
 
     sendRequest(ID, command) {
-        this.client.subscribe(this.topics.response + ID, () => {
-            this.client.publish(this.topics.request + ID, command);
+        this.client.subscribe(this.appTopics.response + ID, () => {
+            this.client.publish(this.hubTopics.request + ID, JSON.stringify(command));
         })
     }
 
     sendResponse(ID, command) {
-        this.client.publish(this.topics.response + ID, command);
+        this.client.publish(this.hubTopics.response + ID, JSON.stringify(command));
     }
 
     sendStatus(ID, command) {
-        this.client.publish(this.topics.status + ID, command);
+        this.client.publish(this.hubTopics.status + ID, JSON.stringify(command));
     }
 }
 

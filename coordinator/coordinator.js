@@ -23,21 +23,20 @@ const logger = new Logger(__filename);
 
 class Coordinator {
     constructor(mac) {
-        this.macAddress = mac;
         this.zigbeeGateway = new ZigbeeGateway(config.gatewayId);
         this.deviceManager = new DeviceManager(mac);
         this.databaseManager = new DatabaseManager();
         this.hardwareInterface = new HardwareInterface();
         this.localServer = new LocalServer();
         this.requestHandler = {
-            devices: this._handleDeviceRequests,
-            rules: this._handleRuleRequests,
-            groups: this._handleGroupRequests
+            devices: this._handleDeviceRequests.bind(this),
+            rules: this._handleRuleRequests.bind(this),
+            groups: this._handleGroupRequests.bind(this)
         };
         this.responseHandler = {
-            devices: this._handleDeviceResponses,
-            rules: this._handleRuleResponses,
-            groups: this._handleGroupResponses
+            devices: this._handleDeviceResponses.bind(this),
+            rules: this._handleRuleResponses.bind(this),
+            groups: this._handleGroupResponses.bind(this)
         };
     }
 
@@ -79,6 +78,16 @@ class Coordinator {
     handleDatabaseDeviceAdded() {
         this.databaseManager.on('database-device-added', params => {
             // TODO Send response to server
+            logger.debug('New device added to DB: ' + JSON.stringify(params));
+            let request = CommandData.Devices.CommandAdd.createRequest(params.version, params.data);
+            if (request.result === Commands.StatusCode.SUCCESS) {
+                // this.localServer.sendRequest(helpers.createRandomString(10), request);
+                // for testing
+                logger.debug('Request created successfully, sending to app');
+                this.localServer.sendRequest('12345', request);
+            } else {
+                logger.debug('Request failed to create');
+            }
         })
     }
 
@@ -121,63 +130,92 @@ class Coordinator {
 
     handleLocalRequest() {
         this.localServer.on('local-request-received', (id, message) => {
-            let parsedMessage = JSON.parse(message);
-            this.requestHandler[parsedMessage.type](id, parsedMessage.action, parsedMessage.data);
+            let parsedMessage = Commands.Command.parseCommand(message);
+            if (parsedMessage.result === Commands.StatusCode.SUCCESS) {
+                let parsedCommand = parsedMessage.command;
+                this.requestHandler[parsedCommand.type](id, parsedCommand.action, parsedCommand.data);
+            } else {
+                let response = new Commands.Command('errors', null, {
+                    statusCode: parsedMessage.result,
+                    statusString: 'Invalid message',
+                    returnData: {}
+                });
+                logger.debug('Message to send: ' + response.fullCommand);
+                this.localServer.sendResponse(id, response);
+            }
         })
     }
 
 
     handleLocalResponse() {
         this.localServer.on('local-response-received', (id, message) => {
-            let parsedMessage = JSON.parse(message);
-            this.responseHandler[parsedMessage.type](id, parsedMessage.action, parsedMessage.data);
+            let parsedMessage = Commands.Command.parseCommand(message);
+            if (parsedMessage.result === Commands.StatusCode.SUCCESS) {
+                let parsedCommand = parsedMessage.command;
+                this.requestHandler[parsedCommand.type](id, parsedCommand.action, parsedCommand.data);
+            } else {
+                this.responseHandler['errors'](id, '', {
+                    statusCode: parsedMessage.result,
+                    statusString: 'Invalid message',
+                    returnData: {}
+                })
+            }
         })
     }
 
     _handleDeviceRequests(id, action, data) {
         switch (action) {
             case 'search': {
-                // let parsedData = CommandData.Devices.CommandSearch.parseData(data);
-                // let response;
-                // if (parsedData.result !== Commands.StatusCode.SUCCESS) {
-                //     response = CommandData.Devices.CommandSearch.createResponse(
-                //         parsedData.result, 'Invalid data content', {}
-                //     );
-                //     this.localServer.sendResponse(id, response);
-                //     return;
-                // }
-                // if (parsedData.data.mac !== this.macAddress) {
-                //     response = CommandData.Devices.CommandSearch.createResponse(
-                //         Commands.StatusCode.ACTION_FAILED, 'Mac address not recognized', {}
-                //     );
-                //     this.localServer.sendResponse(response);
-                //     return;
-                // }
-                // if (parsedData.data.act === 1) {
-                //     let zigbeeCommand = ZigbeeGateway.createZigbeeCommand(ZigbeeCommand.Plugin.PermitJoin);
-                //     let duration = 100000;
-                //     this.zigbeeGateway.publish(zigbeeCommand);
-                //     if (this.deviceSearchTimer) {
-                //         clearTimeout(this.deviceSearchTimer);
-                //     }
-                //     response = CommandData.Devices.CommandSearch.createResponse(
-                //         Commands.StatusCode.SUCCESS, 'OK', {...data, duration}
-                //     );
-                //     this.localServer.sendResponse(id, response);
-                //     this.deviceSearchTimer = setTimeout(() => {
-                //
-                //     }, duration)
-                // } else {
-                //     if (this.deviceSearchTimer) {
-                //         clearTimeout(this.deviceSearchTimer);
-                //     }
-                //     let zigbeeCommand = ZigbeeGateway.createZigbeeCommand(ZigbeeCommand.Plugin.PermitStopJoin);
-                //     this.zigbeeGateway.publish(zigbeeCommand);
-                //     response = CommandData.Devices.CommandSearch.createResponse(
-                //         Commands.StatusCode.SUCCESS, 'OK', {...data, duration: 0}
-                //     );
-                //     this.localServer.sendResponse(helpers.createRandomString(10), response);
-                // }
+                // Validate data
+                let parsedData = CommandData.Devices.CommandSearch.parseData(data);
+                let response;
+
+                // Invalid message
+                if (parsedData.result !== Commands.StatusCode.SUCCESS) {
+                    response = CommandData.Devices.CommandSearch.createResponse(
+                        parsedData.result, 'Invalid data content'
+                    );
+                    this.localServer.sendResponse(id, response);
+                    return;
+                }
+
+                // Valid message
+                response = CommandData.Devices.CommandSearch.createResponse(
+                    Commands.StatusCode.SUCCESS, 'OK'
+                );
+                this.localServer.sendResponse(id, response);
+
+                if (parsedData.data.act === 1) {
+                    // Send Zigbee command
+                    let zigbeeCommand = ZigbeeGateway.createZigbeeCommand(ZigbeeCommand.Plugin.PermitJoin);
+                    this.zigbeeGateway.publish(zigbeeCommand);
+                    // Send status message
+                    let duration = 100000;
+                    let status = CommandData.Devices.CommandSearch.createStatus(1, duration);
+                    this.localServer.sendStatus(id, status);
+
+                    if (this.deviceSearchTimer) {
+                        clearTimeout(this.deviceSearchTimer);
+                    }
+                    this.deviceSearchTimer = setTimeout(() => {
+                        // Send Zigbee command
+                        let zigbeeCommand = ZigbeeGateway.createZigbeeCommand(ZigbeeCommand.Plugin.PermitStopJoin);
+                        this.zigbeeGateway.publish(zigbeeCommand);
+                        // Send status message
+                        let status = CommandData.Devices.CommandSearch.createStatus(0, 0);
+                        this.localServer.sendStatus(id, status);
+                    }, duration)
+                } else {
+                    if (this.deviceSearchTimer) {
+                        clearTimeout(this.deviceSearchTimer);
+                    }
+                    // Send Zigbee command
+                    let zigbeeCommand = ZigbeeGateway.createZigbeeCommand(ZigbeeCommand.Plugin.PermitStopJoin);
+                    this.zigbeeGateway.publish(zigbeeCommand);
+                    // Send status message
+                    let status = CommandData.Devices.CommandSearch.createStatus(0, 0);
+                    this.localServer.sendStatus(id, status);
+                }
             } break;
             case '': {
 

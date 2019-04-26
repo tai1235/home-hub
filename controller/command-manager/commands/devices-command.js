@@ -15,19 +15,15 @@ let { Command, StatusCode } = require('../command');
 const CommandSearch = {
     parseData: data => {
         // Validate data fields
-        let mac = data.mac !== undefined &&
-            typeof data.mac === 'string' &&
-            data.mac.trim().length > 0
-            ? data.mac : false;
         let act = data.act !== undefined &&
             typeof data.act === 'number' &&
-            [0, 1].indexOf(data.act) > -1
-            ? data.act : false;
+            [0, 1].indexOf(data.act)  !== -1
+            ? data.act : -1;
 
-        if (mac && act) {
+        if (act !== -1) {
             return {
                 result: StatusCode.SUCCESS,
-                data: { mac, act }
+                data: { act }
             };
         } else {
             return {
@@ -40,8 +36,8 @@ const CommandSearch = {
         return new Command('devices', 'search', { statusCode, statusString, returnData: {} });
     },
 
-    createStatus: (mac, status, duration) => {
-        return new Command('devices', 'search', { mac, status, duration });
+    createStatus: (status, duration) => {
+        return new Command('devices', 'search', { status, duration });
     }
 };
 
@@ -72,7 +68,28 @@ class CommandControl {
  */
 
 const CommandAdd = {
-
+    createRequest: (version, devices) => {
+        let parsedVersion = version !== undefined &&
+            typeof version === 'number'
+            ? version : -1;
+        let parsedDevices = devices !== undefined &&
+            devices instanceof Array &&
+            devices.length > 0
+            ? devices : [];
+        if (parsedVersion !== -1 && parsedDevices !== []) {
+            return {
+                result: StatusCode.SUCCESS,
+                data: new Command('devices', 'add', {
+                    version: parsedVersion,
+                    devices: parsedDevices
+                })
+            }
+        } else {
+            return {
+                result: StatusCode.INVALID_DATA_CONTENT
+            }
+        }
+    }
 };
 
 /**
