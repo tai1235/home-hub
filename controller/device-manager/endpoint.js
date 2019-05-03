@@ -36,6 +36,7 @@ class SwitchEndpoint extends Service.Switch {
         this.eui64 = eui64;
         this.endpoint = endpoint;
         this.type = EndpointType.SWITCH;
+        this.permissions = ['r', 'w'];
         this.status = { on: false };
         this.getCharacteristic(Characteristic.On)
             .on('set', (value, callback) => {
@@ -81,6 +82,7 @@ class LightEndpoint extends Service.Lightbulb {
         this.eui64 = eui64;
         this.endpoint = endpoint;
         this.type = EndpointType.LIGHT;
+        this.permissions = ['r', 'w'];
         this.status = { on: false, brightness: 0 };
         this.getCharacteristic(Characteristic.On)
             .on('set', (value, callback) => {
@@ -157,6 +159,7 @@ class ContactSensorEndpoint extends Service.ContactSensor {
         this.eui64 = eui64;
         this.endpoint = endpoint;
         this.type = EndpointType.CONTACT_SENSOR;
+        this.permissions = ['r'];
         this.status = { contact: 0 };
         this.getCharacteristic(Characteristic.ContactSensorState)
             .on('get', callback => {
@@ -183,6 +186,7 @@ class MotionSensorEndpoint extends Service.MotionSensor {
         this.eui64 = eui64;
         this.endpoint = endpoint;
         this.type = EndpointType.MOTION_SENSOR;
+        this.permissions = ['r'];
         this.status = { motion: 0 };
         this.getCharacteristic(Characteristic.MotionDetected)
             .on('get', callback => {
@@ -209,6 +213,7 @@ class LightSensorEndpoint extends Service.LightSensor {
         this.eui64 = eui64;
         this.endpoint = endpoint;
         this.type = EndpointType.LIGHT_SENSOR;
+        this.permissions = ['r'];
         this.status = { lux: 0 };
         this.getCharacteristic(Characteristic.CurrentAmbientLightLevel)
             .on('get', callback => {
@@ -235,6 +240,7 @@ class TemperatureSensorEndpoint extends Service.TemperatureSensor {
         this.eui64 = eui64;
         this.endpoint = endpoint;
         this.type = EndpointType.TEMPERATURE_SENSOR;
+        this.permissions = ['r'];
         this.status = { temperature: 0 };
         this.getCharacteristic(Characteristic.CurrentTemperature)
             .on('get', callback => {
@@ -261,6 +267,7 @@ class HumiditySensorEndpoint extends Service.HumiditySensor {
         this.eui64 = eui64;
         this.endpoint = endpoint;
         this.type = EndpointType.HUMIDITY_SENSOR;
+        this.permissions = ['r'];
         this.status = { humidity: 0 };
         this.getCharacteristic(Characteristic.CurrentRelativeHumidity)
             .on('get', callback => {
@@ -287,6 +294,7 @@ class BatteryEndpoint extends Service.BatteryService {
         this.eui64 = eui64;
         this.endpoint = endpoint;
         this.type = EndpointType.BATTERY;
+        this.permissions = ['r'];
         this.status = { battery: 100 };
         this.getCharacteristic(Characteristic.BatteryLevel)
             .on('get', callback => {
@@ -312,6 +320,7 @@ class PebbleEndpoint extends Service.StatelessProgrammableSwitch {
         super(eui64.substr(eui64.length - 6, eui64.length) + '-' + endpoint, endpoint);
         this.eui64 = eui64;
         this.endpoint = endpoint;
+        this.permissions = ['r'];
         this.type = EndpointType.PEBBLE;
     }
 

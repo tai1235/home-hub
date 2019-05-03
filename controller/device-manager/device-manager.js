@@ -85,9 +85,13 @@ class DeviceManager extends Bridge {
             this.removeDevice(eui64);
     }
 
-    handleDeviceStatus(value, eui64, endpoint) {
+    handleDeviceStatus(value, eui64, endpoint, callback) {
         if (this.getDevice(eui64) !== undefined) {
-            this.getDevice(eui64).updateEndpointValue(value, endpoint);
+            this.getDevice(eui64).updateEndpointValue(value, endpoint, e => {
+                if (!e) {
+                    callback(eui64, endpoint, value);
+                }
+            });
         }
     }
 }

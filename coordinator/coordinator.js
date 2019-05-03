@@ -12,6 +12,7 @@ const config = require('../libraries/config');
 const DeviceManager = require('../controller/device-manager/device-manager');
 const storage = require('node-persist');
 const DatabaseManager = require('../controller/database-manager/database-manager');
+const Versions = require('../controller/database-manager/versions');
 const LocalServer = require('./local/local-server');
 const ServerCommunicator = require('./server/server-communicator');
 const HardwareInterface = require('./hardware/hardware-interface');
@@ -36,7 +37,8 @@ class Coordinator {
         this.responseHandler = {
             devices: this._handleDeviceResponses.bind(this),
             rules: this._handleRuleResponses.bind(this),
-            groups: this._handleGroupResponses.bind(this)
+            groups: this._handleGroupResponses.bind(this),
+            errors: this._handleErrorResponses.bind(this)
         };
     }
 
@@ -63,28 +65,28 @@ class Coordinator {
         this.zigbeeGateway.on('zigbee-device-response', params => {
             // Handle device status
             logger.debug(JSON.stringify(params));
-            this.deviceManager.handleDeviceStatus(params.value, params.eui64, params.endpoint);
-            // Update reachable status of device to true
-            this.databaseManager.handleDeviceStatus(params.eui64);
+            this.deviceManager.handleDeviceStatus(params.value, params.eui64, params.endpoint, (eui64, endpoint, value) => {
+                // Send request to server
+                let status = CommandData.Devices.CommandStatus.createStatus(eui64, endpoint, value);
+                this.localServer.sendStatus('12345', status); // for testing only
+                this.localServer.sendStatus(helpers.createRandomString(10), status);
 
-            // Handle rule input
+                // Handle group input
 
-            // Handle group input
+                // Handle rule input
 
-            // Send request to server
+            });
         })
     }
 
     handleDatabaseDeviceAdded() {
         this.databaseManager.on('database-device-added', params => {
-            // TODO Send response to server
             logger.debug('New device added to DB: ' + JSON.stringify(params));
             let request = CommandData.Devices.CommandAdd.createRequest(params.version, params.data);
             if (request.result === Commands.StatusCode.SUCCESS) {
-                // this.localServer.sendRequest(helpers.createRandomString(10), request);
-                // for testing
                 logger.debug('Request created successfully, sending to app');
-                this.localServer.sendRequest('12345', request);
+                this.localServer.sendRequest('12345', request.data); // for testing only
+                this.localServer.sendRequest(helpers.createRandomString(10), request);
             } else {
                 logger.debug('Request failed to create');
             }
@@ -217,9 +219,56 @@ class Coordinator {
                     this.localServer.sendStatus(id, status);
                 }
             } break;
-            case '': {
+            case 'control': {
+                // Validate data
+                let parsedData = CommandData.Devices.CommandControl.parseData(data);
+                let response;
 
+                // Invalid message
+                if (parsedData.result !== Commands.StatusCode.SUCCESS) {
+                    response = CommandData.Devices.CommandControl.createResponse(
+                        parsedData.result, 'Invalid data content'
+                    );
+                    this.localServer.sendResponse(id, response);
+                    return;
+                }
+
+                // Control devices
+                for (let device of parsedData.data) {
+                    let eui64 = device.eui64, endpoint = device.endpoint;
+                    if (this.deviceManager.getDevice(eui64).getEndpoint(endpoint).permissions.indexOf('w') > -1) {
+                        this.deviceManager.getDevice(eui64).getEndpoint(endpoint).setValue(device.value);
+                    } else {
+                        logger.warn('Read only device could not be controlled');
+                    }
+                }
+
+                response = CommandData.Devices.CommandControl.createResponse(
+                    Commands.StatusCode.SUCCESS, 'OK'
+                );
+                this.localServer.sendResponse(id, response);
             } break;
+            case 'version': {
+                let version = Versions.get('devices');
+                let response = CommandData.Devices.CommandVersion.createResponse(Commands.StatusCode.SUCCESS, 'OK', version);
+                this.localServer.sendResponse(id, response);
+            } break;
+            case 'sync': {
+                this.databaseManager.getAllDevices((e, devices) => {
+                    if (e) {
+                        let response = new Commands('errors', null, {
+                            statusCode: Commands.StatusCode.ACTION_FAILED,
+                            statusString: e.message,
+                            returnData: {}
+                        });
+                        this.localServer.sendResponse(id, response);
+                        return;
+                    }
+
+                    let response = CommandData.Devices.CommandSync.createResponse(Commands.StatusCode.SUCCESS, 'OK', devices);
+                    this.localServer.sendResponse(id, response);
+                })
+            }
         }
     }
 
@@ -240,6 +289,10 @@ class Coordinator {
     }
 
     _handleGroupResponses(id, action, data) {
+
+    }
+
+    _handleErrorResponses(id, action, data) {
 
     }
 

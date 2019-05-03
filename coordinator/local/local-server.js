@@ -76,13 +76,13 @@ class LocalServer extends EventEmitter {
     process() {
         this.client.on('message', (topic, message) => {
             let topicLevel = topic.split('/');
-            logger.info('RECEIVE ' + topicLevel[2] + '(ID: ' + topicLevel[3] + '): ' + message);
+            logger.debug('RECEIVE request ' + '[' + topicLevel[4] + ']: ' + message);
             if (topicLevel[2] === 'response') {
                 this.client.unsubscribe(topic, () => {
-                    this.emit('local-response-received', topicLevel[3], message.toString());
+                    this.emit('local-response-received', topicLevel[4], message.toString());
                 });
             } else {
-                this.emit('local-request-received', topicLevel[3], message.toString());
+                this.emit('local-request-received', topicLevel[4], message.toString());
             }
         })
     }
@@ -94,11 +94,15 @@ class LocalServer extends EventEmitter {
     }
 
     sendResponse(ID, command) {
-        this.client.publish(this.hubTopics.response + ID, JSON.stringify(command));
+        let message = JSON.stringify(command);
+        logger.debug('SEND response [' + ID + ']: ' + message);
+        this.client.publish(this.hubTopics.response + ID, message);
     }
 
     sendStatus(ID, command) {
-        this.client.publish(this.hubTopics.status + ID, JSON.stringify(command));
+        let message = JSON.stringify(command);
+        logger.debug('SEND status [' + ID + ']: ' + message);
+        this.client.publish(this.hubTopics.status + ID, message);
     }
 }
 

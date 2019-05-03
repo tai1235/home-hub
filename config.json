@@ -16,7 +16,7 @@
       }
     },
     "hashingSecret": "alpaca",
-    "logPath": "/root/home-hub/log.txt",
+    "logPath": "/home/tainv/final-project/home-hub/log.txt",
     "gatewayId": "000B57FFFE572517",
     "runningMode": 0,
     "mosca": {
