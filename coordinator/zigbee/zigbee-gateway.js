@@ -249,7 +249,7 @@ class ZigbeeGateway extends EventEmitter {
                 switch (attributeID) {
                     case ZigbeeCluster.LEVEL_CONTROL.Attribute.CURRENT_LEVEL.ID: {
                         if (attributeType === ZigbeeCluster.LEVEL_CONTROL.Attribute.CURRENT_LEVEL.type) {
-                            value.birghtness = parseInt(attributeData, 16);
+                            value.birghtness = parseInt(attributeData, 16) * 100 / 256;
                         }
                     }
                 }
