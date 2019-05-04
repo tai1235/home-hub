@@ -246,7 +246,13 @@ class ZigbeeGateway extends EventEmitter {
                 }
             } break;
             case ZigbeeCluster.LEVEL_CONTROL.ID: {
-
+                switch (attributeID) {
+                    case ZigbeeCluster.LEVEL_CONTROL.Attribute.CURRENT_LEVEL.ID: {
+                        if (attributeType === ZigbeeCluster.LEVEL_CONTROL.Attribute.CURRENT_LEVEL.type) {
+                            value.birghtness = parseInt(attributeData, 16);
+                        }
+                    }
+                }
             } break;
             case ZigbeeCluster.ILLUM_MEASUREMENT.ID: {
                 switch (attributeID) {
