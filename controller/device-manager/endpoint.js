@@ -131,11 +131,11 @@ class LightEndpoint extends Service.Lightbulb {
             this.getCharacteristic(Characteristic.On)
                 .updateValue(value.on, undefined);
         }
-        if (value.level !== undefined) {
+        if (value.brightness !== undefined) {
             logger.info('UPDATE characteristic brightness of ' + this.name + ': ' + value.brightness);
-            this.status.brightness = value.level;
+            this.status.brightness = value.brightness;
             this.getCharacteristic(Characteristic.Brightness)
-                .updateValue(value.level, undefined);
+                .updateValue(value.brightness, undefined);
         }
     }
 
