@@ -77,7 +77,7 @@ class LocalServer extends EventEmitter {
         this.client.on('message', (topic, message) => {
             let topicLevel = topic.split('/');
             logger.debug('RECEIVE request ' + '[' + topicLevel[4] + ']: ' + message);
-            if (topicLevel[2] === 'response') {
+            if (topicLevel[3] === 'response') {
                 this.client.unsubscribe(topic, () => {
                     this.emit('local-response-received', topicLevel[4], message.toString());
                 });
