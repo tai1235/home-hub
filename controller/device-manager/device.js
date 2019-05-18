@@ -134,52 +134,79 @@ class Device extends Accessory {
         }
     }
 
-    updateEndpointValue(value, endpoint) {
+    updateEndpointValue(value, endpoint, callback) {
         if (this.getEndpoint(endpoint) !== undefined) {
             switch (this.getEndpoint(endpoint).type) {
                 case EndpointType.SWITCH: {
                     if (value.on !== undefined) {
                         this.getEndpoint(endpoint).updateValue(value.on);
+                        callback(false);
+                    } else {
+                        callback('Could not find value on of switch endpoint')
                     }
                 } break;
                 case EndpointType.LIGHT: {
                     if (value.on !== undefined || value.brightness !== undefined) {
                         this.getEndpoint(endpoint).updateValue(value);
+                        callback(false);
+                    } else {
+                        callback('Could not find value on or brightness of light endpoint')
                     }
                 } break;
                 case EndpointType.CONTACT_SENSOR: {
                     if (value.contact !== undefined) {
                         this.getEndpoint(endpoint).updateValue(value.contact);
+                        callback(false);
+                    } else {
+                        callback('Could not find value contact of contact sensor endpoint')
                     }
                 } break;
                 case EndpointType.MOTION_SENSOR: {
                     if (value.motion !== undefined) {
                         this.getEndpoint(endpoint).updateValue(value.motion);
+                        callback(false);
+                    } else {
+                        callback('Could not find value motion of motion sensor endpoint')
                     }
                 } break;
                 case EndpointType.LIGHT_SENSOR: {
                     if (value.lux !== undefined) {
                         this.getEndpoint(endpoint).updateValue(value.lux);
+                        callback(false);
+                    } else {
+                        callback('Could not find value lux of light sensor endpoint')
                     }
                 } break;
                 case EndpointType.TEMPERATURE_SENSOR: {
                     if (value.temperature !== undefined) {
                         this.getEndpoint(endpoint).updateValue(value.temperature);
+                        callback(false);
+                    } else {
+                        callback('Could not find value temperature of temperature sensor endpoint')
                     }
                 } break;
                 case EndpointType.HUMIDITY_SENSOR: {
                     if (value.humidity !== undefined) {
                         this.getEndpoint(endpoint).updateValue(value.humidity);
+                        callback(false);
+                    } else {
+                        callback('Could not find value humidity of humidity sensor endpoint')
                     }
                 } break;
                 case EndpointType.BATTERY: {
                     if (value.battery !== undefined) {
                         this.getEndpoint(endpoint).updateValue(value.battery);
+                        callback(false);
+                    } else {
+                        callback('Could not find value battery of battery endpoint')
                     }
                 } break;
                 case EndpointType.PEBBLE: {
                     if (value.act !== undefined) {
                         this.getEndpoint(endpoint).updateValue(value.act);
+                        callback(false);
+                    } else {
+                        callback('Could not find value act of pebble endpoint')
                     }
                 } break;
                 default: break;

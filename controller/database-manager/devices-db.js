@@ -77,12 +77,14 @@ class Devices  {
     }
 
     handleDeviceJoined(eui64, endpoint, type, callback) {
+        let deviceUpdate = true;
         this.devices.find({ eui64: eui64 })
             .exec()
             .then(devices => {
                 if (devices === null) {
                     logger.info('ADD endpoint ' + eui64 + '_' + endpoint);
                     let newDevice = new this.devices({ eui64, endpoint, type });
+                    deviceUpdate = false;
                     return newDevice.save();
                 } else {
                     for (let device of devices) {
@@ -98,6 +100,7 @@ class Devices  {
                     }
                     logger.info('ADD endpoint ' + eui64 + '_' + endpoint);
                     let newDevice = new this.devices({ eui64, endpoint, type });
+                    deviceUpdate = false;
                     return newDevice.save();
                 }
             })
@@ -107,7 +110,9 @@ class Devices  {
                     logger.info('UPDATE database successfully');
                     Versions.update('devices');
                     let version = Versions.get('devices');
-                    callback(false, { version, data: device });
+                    callback(false, {
+                        version,
+                        data: deviceUpdate ? [] : [ device ] });
                 }
             })
             .catch(e => {
