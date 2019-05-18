@@ -68,7 +68,7 @@ class Coordinator {
             this.deviceManager.handleDeviceStatus(params.value, params.eui64, params.endpoint, (eui64, endpoint, value) => {
                 // Send request to server
                 let status = CommandData.Devices.CommandStatus.createStatus(eui64, endpoint, value);
-                this.localServer.sendStatus('12345', status); // for testing only
+                // this.localServer.sendStatus('12345', status); // for testing only
                 this.localServer.sendStatus(helpers.createRandomString(10), status);
 
                 // Handle group input
@@ -85,7 +85,7 @@ class Coordinator {
             let request = CommandData.Devices.CommandAdd.createRequest(params.version, params.data);
             if (request.result === Commands.StatusCode.SUCCESS) {
                 logger.debug('Request created successfully, sending to app');
-                this.localServer.sendRequest('12345', request.data); // for testing only
+                // this.localServer.sendRequest('12345', request.data); // for testing only
                 this.localServer.sendRequest(helpers.createRandomString(10), request);
             } else {
                 logger.debug('Request failed to create');
