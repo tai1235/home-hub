@@ -151,7 +151,7 @@ class ZigbeeGateway extends EventEmitter {
                  * {Number} params.time - Transition time
                  */
                 payload.commands.push({
-                    command: ZigbeeCommand.LevelControl.MoveToLevel + ' ' + params.level + ' ' + params.time + ' 0 0',
+                    command: ZigbeeCommand.LevelControl.MoveToLevel + ' ' + params.level + ' ' + params.time,
                     postDelayMs: postTimeDelay
                 });
                 payload.commands.push({

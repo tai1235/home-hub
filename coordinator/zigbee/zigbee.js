@@ -12,7 +12,7 @@ const ZigbeeCommand = {
         DeviceTable: 'plugin device-table send'
     },
     LevelControl: {
-        MoveToLevel: 'zcl level-control mv-to-level',
+        MoveToLevel: 'zcl level-control o-mv-to-level',
         Move: 'zcl level-control move',
         Stop: 'zcl level-control stop',
     }
