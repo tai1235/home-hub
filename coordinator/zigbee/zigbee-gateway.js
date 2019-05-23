@@ -150,7 +150,7 @@ class ZigbeeGateway extends EventEmitter {
                  * {Number} params.level - Level assign to this endpoint
                  * {Number} params.time - Transition time
                  */
-                let level = (parseInt(params.level) * 255 / 100).toFixed(0).toString(16);
+                let level = Math.round(parseInt(params.level) * 255 / 100).toString(16);
                 payload.commands.push({
                     command: ZigbeeCommand.LevelControl.MoveToLevel + ' ' + level + ' ' + params.time,
                     postDelayMs: postTimeDelay
