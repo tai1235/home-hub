@@ -97,7 +97,7 @@ class Coordinator {
         this.databaseManager.on('database-device-offline', params => {
             // TODO Send response to server
             let offlineDevices = [];
-            for (let device in params.devices) {
+            for (let device of params.data) {
                 offlineDevices.push({
                     eui64: device.eui64,
                     endpoint: device.endpoint,
@@ -112,11 +112,15 @@ class Coordinator {
     handleDatabaseDeviceOnline() {
         this.databaseManager.on('database-device-online', params => {
             // TODO Send response to server
-            let request = CommandData.Devices.CommandOnline.createRequest([{
-                eui64: params.eui64,
-                endpoint: params.endpoint,
-                status: true
-            }]);
+            let onlineDevices = [];
+            for (let device of params.data) {
+                onlineDevices.push({
+                    eui64: device.eui64,
+                    endpoint: device.endpoint,
+                    status: true
+                });
+            }
+            let request = CommandData.Devices.CommandOnline.createRequest(onlineDevices);
             this.localServer.sendRequest(helpers.createRandomString(10), request);
         })
     }
