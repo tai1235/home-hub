@@ -134,9 +134,9 @@ const CommandAdd = {
  * Responses are not required
  */
 
-const CommandOffline = {
-    createRequest: (eui64, endpoint, status) => {
-        return new Command('devices', 'offline', { eui64, endpoint, status });
+const CommandOnline = {
+    createRequest: (devices) => {
+        return new Command('devices', 'online', { devices });
     }
 };
 
@@ -179,6 +179,6 @@ module.exports = {
     CommandConfig,
     CommandSync,    // Done
     CommandVersion, // Done
-    CommandOffline, // Done
+    CommandOnline, // Done
     CommandWakeUp
 };

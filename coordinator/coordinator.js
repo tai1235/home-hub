@@ -96,12 +96,28 @@ class Coordinator {
     handleDatabaseDeviceOffline() {
         this.databaseManager.on('database-device-offline', params => {
             // TODO Send response to server
+            let offlineDevices = [];
+            for (let device in params.devices) {
+                offlineDevices.push({
+                    eui64: device.eui64,
+                    endpoint: device.endpoint,
+                    status: false
+                });
+            }
+            let request = CommandData.Devices.CommandOnline.createRequest(offlineDevices);
+            this.localServer.sendRequest(helpers.createRandomString(10), request);
         })
     }
 
     handleDatabaseDeviceOnline() {
         this.databaseManager.on('database-device-online', params => {
             // TODO Send response to server
+            let request = CommandData.Devices.CommandOnline.createRequest([{
+                eui64: params.eui64,
+                endpoint: params.endpoint,
+                status: true
+            }]);
+            this.localServer.sendRequest(helpers.createRandomString(10), request);
         })
     }
 
