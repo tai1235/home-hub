@@ -256,7 +256,7 @@ class TemperatureSensorEndpoint extends Service.TemperatureSensor {
     updateValue(value) {
         logger.info('UPDATE characteristic current temperature of ' + this.name + ': ' + value);
         this.status.temperature = value;
-        this.getCharacteristic(Characteristic.CurrentRelativeHumidity)
+        this.getCharacteristic(Characteristic.CurrentTemperature)
             .updateValue(value, undefined);
     }
 }
