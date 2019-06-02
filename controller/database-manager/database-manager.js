@@ -51,7 +51,12 @@ class DatabaseManager extends EventEmitter {
     // Device handlers
     handleDeviceJoined(eui64, endpoint, type) {
         this.devices.handleDeviceJoined(eui64, endpoint, type, (e, params) => {
-            if (!e) this.emit('database-device-added', params);
+            if (e) return;
+            if (params.updated) {
+                this.emit('database-device-online', params);
+            } else {
+                this.emit('database-device-added', params);
+            }
         });
     }
     handleDeviceLeft(eui64) {

@@ -112,7 +112,8 @@ class Devices  {
                     let version = Versions.get('devices');
                     callback(false, {
                         version,
-                        data: deviceUpdate ? [] : [ device ] });
+                        updated: deviceUpdate,
+                        data: [ device ] });
                 }
             })
             .catch(e => {
