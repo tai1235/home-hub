@@ -51,6 +51,8 @@ class HardwareInterface extends EventEmitter {
     _handleSwitchEvent() {
         this.on('hardware-button-push', () => {
             logger.debug('button push');
+            this.redLED.write(0);
+            this.blueLED.write(0);
         });
         this.on('hardware-button-hold-3', () => {
             logger.debug('button hold for 3s');
