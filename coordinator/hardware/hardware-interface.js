@@ -18,7 +18,7 @@ const logger = new Logger(__filename);
 class HardwareInterface extends EventEmitter {
     constructor() {
         super();
-        this.button = new artik.gpio(30, 'sw403', 'in', 'both', 0);
+        this.button = new artik.gpio(32, 'sw404', 'in', 'both', 0);
         this.redLED = new artik.gpio(28, 'RedLED', 'out', 'none', 0);
         this.blueLED = new artik.gpio(38, 'BlueLED', 'out', 'none', 0);
         this.buttonTimeCount = 0;
@@ -26,7 +26,7 @@ class HardwareInterface extends EventEmitter {
     };
 
     start() {
-        if (fs.existsSync('/sys/class/gpio/gpio30'))
+        if (fs.existsSync('/sys/class/gpio/gpio32'))
             childProcess.execSync('echo 30 > /sys/class/gpio/unexport');
         if (fs.existsSync('/sys/class/gpio/gpio28'))
             childProcess.execSync('echo 28 > /sys/class/gpio/unexport');
